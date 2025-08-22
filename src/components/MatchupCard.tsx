@@ -62,7 +62,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
   isCurrentRound = false
 }) => {
   const handleTeamClick = (teamId: number) => {
-    if (!disabled && onSelectWinner && isCurrentRound) {
+    if (!disabled && onSelectWinner) {
       onSelectWinner(teamId);
     }
   };

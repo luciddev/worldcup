@@ -24,6 +24,8 @@ const AppContent: React.FC = () => {
     const team = getTeamById(teamId);
     if (!team) return;
 
+    console.log(`Selecting winner: ${team.name} in round ${roundIndex + 1}, match ${matchIndex + 1}`);
+
     const updatedRounds = [...tournamentState.rounds];
     const currentRound = updatedRounds[roundIndex];
     
@@ -38,9 +40,11 @@ const AppContent: React.FC = () => {
       if (matchIndex % 2 === 0) {
         // First match of the pair - goes to team1
         nextRound.matches[nextMatchIndex].team1 = team;
+        console.log(`Advanced ${team.name} to next round (team1) at match ${nextMatchIndex + 1}`);
       } else {
         // Second match of the pair - goes to team2
         nextRound.matches[nextMatchIndex].team2 = team;
+        console.log(`Advanced ${team.name} to next round (team2) at match ${nextMatchIndex + 1}`);
       }
     }
 
@@ -48,6 +52,7 @@ const AppContent: React.FC = () => {
     const isRoundComplete = currentRound.matches.every(match => match.winner !== null);
     if (isRoundComplete) {
       currentRound.isComplete = true;
+      console.log(`Round ${roundIndex + 1} is now complete`);
     }
 
     setTournamentState({
