@@ -18,9 +18,9 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
     ? 'rgba(255, 255, 255, 0.2)' 
     : 'rgba(255, 255, 255, 0.1)'};
   border-radius: 8px;
-  padding: 0.75rem;
+  padding: 0.5rem;
   width: 100%;
-  max-width: 200px;
+  max-width: 180px;
   transition: all 0.2s ease;
   opacity: ${props => props.disabled ? 0.5 : 1};
   
@@ -41,22 +41,14 @@ const MatchNumber = styled.div`
   font-weight: 600;
   font-size: 0.7rem;
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   width: fit-content;
 `;
 
 const TeamsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const VS = styled.div`
-  text-align: center;
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin: 0.25rem 0;
+  gap: 0.25rem;
 `;
 
 const PlaceholderTeam = styled.div`
@@ -107,8 +99,6 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
             {hasTeams ? 'TBD' : '—'}
           </PlaceholderTeam>
         )}
-        
-        <VS>vs</VS>
         
         {match.team2 ? (
           <Team
