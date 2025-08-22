@@ -33,17 +33,7 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
   }
 `;
 
-const MatchNumber = styled.div`
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.7rem;
-  text-align: center;
-  margin-bottom: 0.25rem;
-  width: fit-content;
-`;
+
 
 const TeamsContainer = styled.div`
   display: flex;
@@ -81,10 +71,6 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
 
   return (
     <CardContainer disabled={disabled} isCurrentRound={isCurrentRound}>
-      <MatchNumber>
-        {match.isPlayIn ? 'P' : 'M'}{match.matchNumber}
-      </MatchNumber>
-      
       <TeamsContainer>
         {match.team1 ? (
           <Team
