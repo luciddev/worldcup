@@ -27,17 +27,21 @@ const BracketGrid = styled.div<{ focusedRound: number | null }>`
   min-height: 2000px; /* Ensure grid has enough height */
   padding: 2rem 0;
   position: relative;
+  border: 3px solid blue; /* Debug grid border */
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: ${props => {
       if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
-      // When focused on a round, condense the grid for better viewing
-      return 'repeat(32, minmax(30px, 1fr))';
+      // When focused on a round, adjust grid size based on focused round
+      let totalRows = 32;
+      if (props.focusedRound === 1) totalRows = 16; // Round of 16 focused
+      else if (props.focusedRound === 2) totalRows = 8; // Round of 8 focused
+      return `repeat(${totalRows}, minmax(2px, 1fr))`;
     }};
-    gap: ${props => props.focusedRound === null ? '1rem' : '0.5rem'};
+    gap: ${props => props.focusedRound === null ? '1rem' : '0.01rem'};
     min-width: 100vw;
-    min-height: ${props => props.focusedRound === null ? '2000px' : '1000px'};
+    min-height: ${props => props.focusedRound === null ? '2000px' : '400px'};
     overflow-x: auto;
     scroll-behavior: smooth;
   }
@@ -97,20 +101,40 @@ const MatchWrapper = styled.div<{
     if (props.roundIndex < props.focusedRound) return 0;
     return props.isCurrentRound ? 1 : 0.7;
   }};
+  visibility: ${props => {
+    if (props.focusedRound === null) return 'visible';
+    // When focused, hide the content of rounds that come before the focused round
+    if (props.roundIndex < props.focusedRound) return 'hidden';
+    return 'visible';
+  }};
   transition: all 0.3s ease;
   position: relative;
   width: 100%;
   grid-column: ${props => props.roundIndex + 1};
   grid-row: ${props => {
-    // Calculate grid position based on round and match position
-    const baseRows = 32; // Total grid rows
+    // Always maintain proper grid positioning regardless of focus
     const rowSpan = Math.pow(2, props.roundIndex);
     const startRow = (props.position * rowSpan) + 2; // +2 to account for header row
+    
+    // When focused, recalculate positioning as if focused round is the first round
+    if (props.focusedRound !== null) {
+      if (props.roundIndex === props.focusedRound) {
+        return 'auto'; // Remove grid positioning from focused round
+      } else if (props.roundIndex > props.focusedRound) {
+        // Recalculate as if focused round is round 0
+        const adjustedRoundIndex = props.roundIndex - props.focusedRound;
+        const adjustedRowSpan = Math.pow(2, adjustedRoundIndex);
+        const adjustedStartRow = (props.position * adjustedRowSpan) + 2;
+        return `${adjustedStartRow} / span ${adjustedRowSpan}`;
+      }
+    }
+    
     return `${startRow} / span ${rowSpan}`;
   }};
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 2px solid red; /* Debug border */
 `;
 
 const getRoundDates = (round: number): string => {

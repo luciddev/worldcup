@@ -18,7 +18,7 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
     ? 'rgba(255, 255, 255, 0.2)' 
     : 'rgba(255, 255, 255, 0.1)'};
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0.25rem;
   width: 100%;
   max-width: 180px;
   transition: all 0.2s ease;
@@ -38,18 +38,18 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
 const TeamsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
 `;
 
 const PlaceholderTeam = styled.div`
   background: rgba(255, 255, 255, 0.05);
   border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  padding: 0.5rem;
+  padding: 0.25rem;
   text-align: center;
   color: #64748b;
   font-size: 0.75rem;
-  min-height: 40px;
+  min-height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
