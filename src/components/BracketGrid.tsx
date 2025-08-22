@@ -18,7 +18,7 @@ const BracketContainer = styled.div`
   overflow-x: auto;
 `;
 
-const BracketGrid = styled.div<{ focusedRound: number | null }>`
+const BracketGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(5, 1fr); /* 5 rounds */
   grid-template-rows: repeat(32, minmax(60px, 1fr)); /* 32 rows with minimum height */
@@ -30,14 +30,10 @@ const BracketGrid = styled.div<{ focusedRound: number | null }>`
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: ${props => {
-      if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
-      // When focused, use much smaller row heights for tight condensation
-      return 'repeat(32, minmax(20px, 1fr))';
-    }};
-    gap: 0.5rem;
+    grid-template-rows: repeat(32, minmax(60px, 1fr));
+    gap: 1rem;
     min-width: 100vw;
-    min-height: ${props => props.focusedRound === null ? '2000px' : '400px'};
+    min-height: 2000px;
     overflow-x: auto;
     scroll-behavior: smooth;
   }
@@ -47,7 +43,7 @@ const RoundColumn = styled.div<{ roundIndex: number }>`
   display: contents; /* Make children direct grid items */
 `;
 
-const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean; focusedRound: number | null }>`
+const RoundHeader = styled.div<{ roundIndex: number }>`
   background: var(--primary-gradient);
   padding: 0.75rem;
   border-radius: 8px;
@@ -60,16 +56,8 @@ const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean; focused
   grid-row: 1;
   cursor: pointer;
   transition: all 0.3s ease;
-  opacity: ${props => {
-    if (props.focusedRound === null) return 1;
-    // When focused, only show the focused round header
-    return props.roundIndex === props.focusedRound ? 1 : 0;
-  }};
   
   @media (max-width: 768px) {
-    padding: ${props => props.isFocused ? '0.5rem' : '0.75rem'};
-    font-size: ${props => props.isFocused ? '0.875rem' : '1rem'};
-    
     &:hover {
       background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
       transform: scale(1.02);
@@ -90,39 +78,15 @@ const RoundDate = styled.div`
   margin-top: 0.25rem;
 `;
 
-const BackButton = styled.button`
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: none;
-  
-  @media (max-width: 768px) {
-    display: block;
-  }
-  
-  &:hover {
-    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-  }
-`;
+
 
 const MatchWrapper = styled.div<{ 
   isCurrentRound: boolean;
   position: number;
   totalMatches: number;
   roundIndex: number;
-  focusedRound: number | null;
 }>`
-  opacity: ${props => {
-    if (props.focusedRound === null) return props.isCurrentRound ? 1 : 0.7;
-    // When focused, only show current round at full opacity, hide others
-    return props.roundIndex === props.focusedRound ? 1 : 0;
-  }};
+  opacity: ${props => props.isCurrentRound ? 1 : 0.7};
   transition: all 0.3s ease;
   position: relative;
   width: 100%;
@@ -167,7 +131,6 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   onSelectWinner, 
   onAdvanceRound 
 }) => {
-  const [focusedRound, setFocusedRound] = useState<number | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const canAdvanceCurrentRound = () => {
@@ -178,9 +141,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   };
 
   const handleRoundHeaderClick = (roundIndex: number) => {
-    setFocusedRound(roundIndex);
-    
-    // Scroll to the focused round on mobile
+    // Scroll to the round on mobile
     if (window.innerWidth <= 768 && gridRef.current) {
       const columnWidth = gridRef.current.scrollWidth / 5;
       const scrollPosition = columnWidth * roundIndex;
@@ -191,36 +152,18 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
     }
   };
 
-  const handleBackClick = () => {
-    setFocusedRound(null);
-    if (gridRef.current) {
-      gridRef.current.scrollTo({
-        left: 0,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   return (
     <BracketContainer>
       <Section>
         <SectionTitle>🏆 World Cup 2026 Tournament Bracket</SectionTitle>
-        {focusedRound !== null && (
-          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-            <BackButton onClick={handleBackClick}>
-              ← Back to Full View
-            </BackButton>
-          </div>
-        )}
+
       </Section>
 
-      <BracketGrid ref={gridRef} focusedRound={focusedRound}>
-                {rounds.map((round, roundIndex) => (
+            <BracketGrid ref={gridRef}>
+        {rounds.map((round, roundIndex) => (
           <RoundColumn key={round.round} roundIndex={roundIndex}>
             <RoundHeader 
               roundIndex={roundIndex}
-              isFocused={focusedRound === roundIndex}
-              focusedRound={focusedRound}
               onClick={() => handleRoundHeaderClick(roundIndex)}
             >
               <RoundTitle>{getRoundName(round.round)}</RoundTitle>
@@ -234,7 +177,6 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 position={matchIndex}
                 totalMatches={round.matches.length}
                 roundIndex={roundIndex}
-                focusedRound={focusedRound}
               >
                 <MatchupCard
                   match={match}
