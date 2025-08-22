@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { TournamentRound, Match as MatchType } from '../types';
-import Match from './Match';
+import MatchupCard from './MatchupCard';
 import BracketLines from './BracketLines';
 import { Card, Section, SectionTitle } from './styled/Common';
 
@@ -88,7 +88,6 @@ const MatchWrapper = styled.div<{
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid red; /* Debug border to see grid positioning */
 `;
 
 const getRoundDates = (round: number): string => {
@@ -147,19 +146,16 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 position={matchIndex}
                 totalMatches={round.matches.length}
                 roundIndex={roundIndex}
-                style={{
-                  border: '2px solid blue' // Debug border
-                }}
               >
-                <Match
+                <MatchupCard
                   match={match}
                   onSelectWinner={
                     !round.isComplete
-                      ? (teamId) => onSelectWinner(roundIndex, matchIndex, teamId)
+                      ? (teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)
                       : undefined
                   }
                   disabled={round.isComplete}
-                  showMatchNumber={false}
+                  isCurrentRound={round.round === currentRound}
                 />
                 {roundIndex < rounds.length - 1 && (
                   <BracketLines
