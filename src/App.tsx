@@ -25,20 +25,29 @@ const AppContent: React.FC = () => {
     if (!team) return;
 
     const updatedRounds = [...tournamentState.rounds];
-    updatedRounds[roundIndex].matches[matchIndex].winner = team;
+    const currentRound = updatedRounds[roundIndex];
+    
+    // Set the winner for the current match
+    currentRound.matches[matchIndex].winner = team;
 
     // Automatically advance winners to the next round
     if (roundIndex < updatedRounds.length - 1) {
-      const nextRoundIndex = roundIndex + 1;
+      const nextRound = updatedRounds[roundIndex + 1];
       const nextMatchIndex = Math.floor(matchIndex / 2);
       
       if (matchIndex % 2 === 0) {
         // First match of the pair - goes to team1
-        updatedRounds[nextRoundIndex].matches[nextMatchIndex].team1 = team;
+        nextRound.matches[nextMatchIndex].team1 = team;
       } else {
         // Second match of the pair - goes to team2
-        updatedRounds[nextRoundIndex].matches[nextMatchIndex].team2 = team;
+        nextRound.matches[nextMatchIndex].team2 = team;
       }
+    }
+
+    // Check if current round is complete
+    const isRoundComplete = currentRound.matches.every(match => match.winner !== null);
+    if (isRoundComplete) {
+      currentRound.isComplete = true;
     }
 
     setTournamentState({
