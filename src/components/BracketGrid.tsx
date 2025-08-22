@@ -32,11 +32,12 @@ const BracketGrid = styled.div<{ focusedRound: number | null }>`
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: ${props => {
       if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
-      return 'repeat(32, minmax(40px, 1fr))';
+      // When focused, use much smaller row heights for tight condensation
+      return 'repeat(32, minmax(20px, 1fr))';
     }};
-    gap: 1rem;
+    gap: 0.5rem;
     min-width: 100vw;
-    min-height: ${props => props.focusedRound === null ? '2000px' : '800px'};
+    min-height: ${props => props.focusedRound === null ? '2000px' : '400px'};
     overflow-x: auto;
     scroll-behavior: smooth;
   }
@@ -46,7 +47,7 @@ const RoundColumn = styled.div<{ roundIndex: number }>`
   display: contents; /* Make children direct grid items */
 `;
 
-const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean }>`
+const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean; focusedRound: number | null }>`
   background: var(--primary-gradient);
   padding: 0.75rem;
   border-radius: 8px;
@@ -59,6 +60,11 @@ const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean }>`
   grid-row: 1;
   cursor: pointer;
   transition: all 0.3s ease;
+  opacity: ${props => {
+    if (props.focusedRound === null) return 1;
+    // When focused, only show the focused round header
+    return props.roundIndex === props.focusedRound ? 1 : 0;
+  }};
   
   @media (max-width: 768px) {
     padding: ${props => props.isFocused ? '0.5rem' : '0.75rem'};
@@ -110,9 +116,14 @@ const MatchWrapper = styled.div<{
   position: number;
   totalMatches: number;
   roundIndex: number;
+  focusedRound: number | null;
 }>`
-  opacity: ${props => props.isCurrentRound ? 1 : 0.7};
-  transition: opacity 0.3s ease;
+  opacity: ${props => {
+    if (props.focusedRound === null) return props.isCurrentRound ? 1 : 0.7;
+    // When focused, only show current round at full opacity, hide others
+    return props.roundIndex === props.focusedRound ? 1 : 0;
+  }};
+  transition: all 0.3s ease;
   position: relative;
   width: 100%;
   grid-column: ${props => props.roundIndex + 1};
@@ -204,11 +215,12 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
       </Section>
 
       <BracketGrid ref={gridRef} focusedRound={focusedRound}>
-        {rounds.map((round, roundIndex) => (
+                {rounds.map((round, roundIndex) => (
           <RoundColumn key={round.round} roundIndex={roundIndex}>
             <RoundHeader 
               roundIndex={roundIndex}
               isFocused={focusedRound === roundIndex}
+              focusedRound={focusedRound}
               onClick={() => handleRoundHeaderClick(roundIndex)}
             >
               <RoundTitle>{getRoundName(round.round)}</RoundTitle>
@@ -222,6 +234,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 position={matchIndex}
                 totalMatches={round.matches.length}
                 roundIndex={roundIndex}
+                focusedRound={focusedRound}
               >
                 <MatchupCard
                   match={match}
