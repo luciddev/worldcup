@@ -39,7 +39,7 @@ const TeamContainer = styled.div<{
 `;
 
 const Flag = styled.div<{ size?: string }>`
-  font-size: ${props => props.size === 'small' ? '1.25rem' : props.size === 'large' ? '2rem' : '1.5rem'};
+  font-size: ${props => props.size === 'small' ? '1.44rem' : props.size === 'large' ? '2.3rem' : '1.73rem'};
   line-height: 1;
 `;
 
@@ -53,7 +53,7 @@ const TeamInfo = styled.div`
 
 const TeamName = styled.div<{ size?: string }>`
   font-weight: 600;
-  font-size: ${props => props.size === 'small' ? '0.75rem' : props.size === 'large' ? '1.125rem' : '0.875rem'};
+  font-size: ${props => props.size === 'small' ? '0.86rem' : props.size === 'large' ? '1.29rem' : '1.01rem'};
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -62,7 +62,7 @@ const TeamName = styled.div<{ size?: string }>`
 
 const Score = styled.div<{ size?: string }>`
   font-weight: 700;
-  font-size: ${props => props.size === 'small' ? '0.875rem' : props.size === 'large' ? '1.25rem' : '1rem'};
+  font-size: ${props => props.size === 'small' ? '1.01rem' : props.size === 'large' ? '1.44rem' : '1.15rem'};
   color: var(--text-primary);
   min-width: 1.5rem;
   text-align: center;

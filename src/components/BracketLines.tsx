@@ -17,7 +17,7 @@ const BracketLine = styled.div<{
   position: absolute;
   pointer-events: none;
   z-index: 1;
-  right: -1rem;
+  right: -0.5rem;
   top: 50%;
   transform: translateY(-50%);
   
@@ -27,9 +27,9 @@ const BracketLine = styled.div<{
     position: absolute;
     right: 0;
     top: 50%;
-    width: 1rem;
-    height: 2px;
-    background: ${props => props.isCurrentRound ? 'var(--border-color)' : 'transparent'};
+    width: 0.5rem;
+    height: 3px;
+    background: 'var(--border-color)';
     display: block;
     transform: translateY(-50%);
   }
@@ -53,7 +53,7 @@ const BracketLine = styled.div<{
         return '0%';
       }
     }};
-    width: 2px;
+    width: 3px;
     height: ${props => {
       const { matchIndex, roundIndex } = props;
       
@@ -67,7 +67,7 @@ const BracketLine = styled.div<{
         return '50%';
       }
     }};
-    background: ${props => props.isCurrentRound ? 'var(--border-color)' : 'transparent'};
+    background: 'var(--border-color)';
     display: block;
   }
 `;

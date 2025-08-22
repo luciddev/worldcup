@@ -20,7 +20,7 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
   border-radius: 8px;
   padding: 0.25rem;
   width: 100%;
-  max-width: 180px;
+  max-width: 337px; /* 25% wider than 270px */
   transition: all 0.2s ease;
   opacity: ${props => props.disabled ? 0.5 : 1};
   
@@ -45,7 +45,7 @@ const PlaceholderTeam = styled.div`
   background: rgba(255, 255, 255, 0.05);
   border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  padding: 0.25rem;
+  padding: 0.25rem 0.375rem;
   text-align: center;
   color: #64748b;
   font-size: 0.75rem;
@@ -53,6 +53,7 @@ const PlaceholderTeam = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 160px;
 `;
 
 const MatchupCard: React.FC<MatchupCardProps> = ({ 
