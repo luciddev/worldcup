@@ -18,7 +18,7 @@ const BracketContainer = styled.div`
   overflow-x: auto;
 `;
 
-const BracketGrid = styled.div`
+const BracketGrid = styled.div<{ focusedRound: number | null }>`
   display: grid;
   grid-template-columns: repeat(5, 1fr); /* 5 rounds */
   grid-template-rows: repeat(32, minmax(60px, 1fr)); /* 32 rows with minimum height */
@@ -30,10 +30,14 @@ const BracketGrid = styled.div`
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(32, minmax(60px, 1fr));
-    gap: 1rem;
+    grid-template-rows: ${props => {
+      if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
+      // When focused on a round, condense the grid for better viewing
+      return 'repeat(32, minmax(30px, 1fr))';
+    }};
+    gap: ${props => props.focusedRound === null ? '1rem' : '0.5rem'};
     min-width: 100vw;
-    min-height: 2000px;
+    min-height: ${props => props.focusedRound === null ? '2000px' : '1000px'};
     overflow-x: auto;
     scroll-behavior: smooth;
   }
@@ -85,8 +89,14 @@ const MatchWrapper = styled.div<{
   position: number;
   totalMatches: number;
   roundIndex: number;
+  focusedRound: number | null;
 }>`
-  opacity: ${props => props.isCurrentRound ? 1 : 0.7};
+  opacity: ${props => {
+    if (props.focusedRound === null) return props.isCurrentRound ? 1 : 0.7;
+    // When focused, hide rounds that come before the focused round
+    if (props.roundIndex < props.focusedRound) return 0;
+    return props.isCurrentRound ? 1 : 0.7;
+  }};
   transition: all 0.3s ease;
   position: relative;
   width: 100%;
@@ -131,6 +141,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   onSelectWinner, 
   onAdvanceRound 
 }) => {
+  const [focusedRound, setFocusedRound] = useState<number | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const canAdvanceCurrentRound = () => {
@@ -141,6 +152,13 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   };
 
   const handleRoundHeaderClick = (roundIndex: number) => {
+    // If clicking on Round of 32 (index 0), reset focus to show full view
+    if (roundIndex === 0) {
+      setFocusedRound(null);
+    } else {
+      setFocusedRound(roundIndex);
+    }
+    
     // Scroll to the round on mobile
     if (window.innerWidth <= 768 && gridRef.current) {
       const columnWidth = gridRef.current.scrollWidth / 5;
@@ -159,7 +177,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
 
       </Section>
 
-            <BracketGrid ref={gridRef}>
+            <BracketGrid ref={gridRef} focusedRound={focusedRound}>
         {rounds.map((round, roundIndex) => (
           <RoundColumn key={round.round} roundIndex={roundIndex}>
             <RoundHeader 
@@ -177,6 +195,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 position={matchIndex}
                 totalMatches={round.matches.length}
                 roundIndex={roundIndex}
+                focusedRound={focusedRound}
               >
                 <MatchupCard
                   match={match}
