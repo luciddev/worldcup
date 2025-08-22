@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { TournamentRound, Match as MatchType } from '../types';
 import MatchupCard from './MatchupCard';
@@ -18,7 +18,7 @@ const BracketContainer = styled.div`
   overflow-x: auto;
 `;
 
-const BracketGrid = styled.div`
+const BracketGrid = styled.div<{ focusedRound: number | null }>`
   display: grid;
   grid-template-columns: repeat(5, 1fr); /* 5 rounds */
   grid-template-rows: repeat(32, minmax(60px, 1fr)); /* 32 rows with minimum height */
@@ -29,11 +29,16 @@ const BracketGrid = styled.div`
   position: relative;
   
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: ${props => {
+      if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
+      return 'repeat(32, minmax(40px, 1fr))';
+    }};
     gap: 1rem;
-    min-width: auto;
-    min-height: auto;
+    min-width: 100vw;
+    min-height: ${props => props.focusedRound === null ? '2000px' : '800px'};
+    overflow-x: auto;
+    scroll-behavior: smooth;
   }
 `;
 
@@ -41,7 +46,7 @@ const RoundColumn = styled.div<{ roundIndex: number }>`
   display: contents; /* Make children direct grid items */
 `;
 
-const RoundHeader = styled.div<{ roundIndex: number }>`
+const RoundHeader = styled.div<{ roundIndex: number; isFocused: boolean }>`
   background: var(--primary-gradient);
   padding: 0.75rem;
   border-radius: 8px;
@@ -52,6 +57,18 @@ const RoundHeader = styled.div<{ roundIndex: number }>`
   z-index: 10;
   grid-column: ${props => props.roundIndex + 1};
   grid-row: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  @media (max-width: 768px) {
+    padding: ${props => props.isFocused ? '0.5rem' : '0.75rem'};
+    font-size: ${props => props.isFocused ? '0.875rem' : '1rem'};
+    
+    &:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      transform: scale(1.02);
+    }
+  }
 `;
 
 const RoundTitle = styled.h3`
@@ -65,6 +82,27 @@ const RoundDate = styled.div`
   color: #e2e8f0;
   font-size: 0.75rem;
   margin-top: 0.25rem;
+`;
+
+const BackButton = styled.button`
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: block;
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  }
 `;
 
 const MatchWrapper = styled.div<{ 
@@ -118,6 +156,9 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   onSelectWinner, 
   onAdvanceRound 
 }) => {
+  const [focusedRound, setFocusedRound] = useState<number | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
   const canAdvanceCurrentRound = () => {
     if (currentRound > rounds.length) return false;
     const roundData = rounds[currentRound - 1];
@@ -125,16 +166,51 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
     return roundData.matches.every(match => match.winner !== null);
   };
 
+  const handleRoundHeaderClick = (roundIndex: number) => {
+    setFocusedRound(roundIndex);
+    
+    // Scroll to the focused round on mobile
+    if (window.innerWidth <= 768 && gridRef.current) {
+      const columnWidth = gridRef.current.scrollWidth / 5;
+      const scrollPosition = columnWidth * roundIndex;
+      gridRef.current.scrollTo({
+        left: scrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleBackClick = () => {
+    setFocusedRound(null);
+    if (gridRef.current) {
+      gridRef.current.scrollTo({
+        left: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <BracketContainer>
       <Section>
         <SectionTitle>🏆 World Cup 2026 Tournament Bracket</SectionTitle>
+        {focusedRound !== null && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <BackButton onClick={handleBackClick}>
+              ← Back to Full View
+            </BackButton>
+          </div>
+        )}
       </Section>
 
-      <BracketGrid>
+      <BracketGrid ref={gridRef} focusedRound={focusedRound}>
         {rounds.map((round, roundIndex) => (
           <RoundColumn key={round.round} roundIndex={roundIndex}>
-            <RoundHeader roundIndex={roundIndex}>
+            <RoundHeader 
+              roundIndex={roundIndex}
+              isFocused={focusedRound === roundIndex}
+              onClick={() => handleRoundHeaderClick(roundIndex)}
+            >
               <RoundTitle>{getRoundName(round.round)}</RoundTitle>
               <RoundDate>{getRoundDates(round.round)}</RoundDate>
             </RoundHeader>
