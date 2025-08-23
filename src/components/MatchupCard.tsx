@@ -11,26 +11,15 @@ interface MatchupCardProps {
 }
 
 const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }>`
-  background: ${props => props.isCurrentRound 
-    ? 'rgba(255, 255, 255, 0.08)' 
-    : 'rgba(255, 255, 255, 0.03)'};
-  border: 1px solid ${props => props.isCurrentRound 
-    ? 'rgba(255, 255, 255, 0.2)' 
-    : 'rgba(255, 255, 255, 0.1)'};
-  border-radius: 8px;
-  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   width: 100%;
-  max-width: 337px; /* 25% wider than 270px */
+  max-width: 337px;
   transition: all 0.2s ease;
-  opacity: ${props => props.disabled ? 0.5 : 1};
-  
-  &:hover {
-    ${props => !props.disabled && props.isCurrentRound && `
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-1px);
-    `}
-  }
+  opacity: ${props => props.disabled ? 0.6 : 1};
+  box-shadow: none;
 `;
 
 
@@ -38,22 +27,23 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
 const TeamsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0;
 `;
 
 const PlaceholderTeam = styled.div`
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  padding: 0.25rem 0.375rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: none;
+  border-radius: 0;
+  padding: 0.375rem 0.5rem;
   text-align: center;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 0.75rem;
-  min-height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 160px;
+  width: 100%;
+  height: 28px; /* Match the exact height of Team component */
+  box-shadow: none;
 `;
 
 const MatchupCard: React.FC<MatchupCardProps> = ({ 
@@ -68,8 +58,6 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
     }
   };
 
-  const hasTeams = match.team1 || match.team2;
-
   return (
     <CardContainer disabled={disabled} isCurrentRound={isCurrentRound}>
       <TeamsContainer>
@@ -83,7 +71,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
           />
         ) : (
           <PlaceholderTeam>
-            {hasTeams ? 'TBD' : '—'}
+            —
           </PlaceholderTeam>
         )}
         
@@ -97,7 +85,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
           />
         ) : (
           <PlaceholderTeam>
-            {hasTeams ? 'TBD' : '—'}
+            —
           </PlaceholderTeam>
         )}
       </TeamsContainer>

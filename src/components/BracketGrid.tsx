@@ -19,7 +19,7 @@ const BracketContainer = styled.div`
   width: 100%;
 `;
 
-const BracketGrid = styled.div<{ focusedRound: number | null }>`
+const BracketGrid = styled.div<{ focusedRound: number | null; hasFrozenRounds: boolean }>`
   display: grid;
       grid-template-columns: ${props => {
       if (props.focusedRound === null) return 'repeat(5, 1fr)'; // Normal 5 equal columns
@@ -40,31 +40,44 @@ const BracketGrid = styled.div<{ focusedRound: number | null }>`
       }
       return columns.join(' ');
     }};
-  grid-template-rows: repeat(32, minmax(60px, 1fr)); /* 32 rows with minimum height */
-  gap: ${props => props.focusedRound === null ? '2rem' : '2rem'};
+  grid-template-rows: repeat(32, minmax(${props => (props.focusedRound !== null || props.hasFrozenRounds) ? '40px' : '60px'}, 1fr)); /* 32 rows with minimum height */
+  gap: ${props => {
+    // When focused or has frozen rounds, use condensed spacing
+    if (props.focusedRound !== null || props.hasFrozenRounds) return '0.5rem';
+    return '2rem';
+  }};
   column-gap: ${props => props.focusedRound === null ? '2rem' : '3rem'};
-  min-width: ${props => props.focusedRound === null ? '2000px' : '100vw'}; /* Use viewport width when focused */
-  width: ${props => props.focusedRound !== null ? '100vw' : 'auto'}; /* Force full viewport width when focused */
-  min-height: 2000px; /* Ensure grid has enough height */
+  min-width: 2000px;
+  min-height: 2000px;
   padding: 0;
   position: relative;
-
+  transition: gap 0.4s ease, column-gap 0.4s ease;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: ${props => {
-      if (props.focusedRound === null) return 'repeat(32, minmax(60px, 1fr))';
-      // When focused on a round, adjust grid size based on focused round
-      let totalRows = 32;
-      if (props.focusedRound === 1) totalRows = 16; // Round of 16 focused
-      else if (props.focusedRound === 2) totalRows = 8; // Round of 8 focused
-      return `repeat(${totalRows}, minmax(2px, 1fr))`;
+    grid-template-rows: repeat(32, minmax(${props => (props.focusedRound !== null || props.hasFrozenRounds) ? '30px' : '60px'}, 1fr));
+    gap: ${props => {
+      // When focused or has frozen rounds, use condensed spacing
+      if (props.focusedRound !== null || props.hasFrozenRounds) return '0.25rem';
+      return '1rem';
     }};
-    gap: ${props => props.focusedRound === null ? '1rem' : '0.01rem'};
     min-width: 100vw;
-    min-height: ${props => props.focusedRound === null ? '2000px' : '400px'};
+    min-height: 2000px;
     overflow-x: auto;
     scroll-behavior: smooth;
+    transition: gap 0.4s ease;
   }
 `;
 
@@ -72,28 +85,29 @@ const RoundColumn = styled.div<{ roundIndex: number }>`
   display: contents; /* Make children direct grid items */
 `;
 
-const RoundHeader = styled.div<{ roundIndex: number }>`
-  background: var(--primary-gradient);
+const RoundHeader = styled.div<{ roundIndex: number; focusedRound: number | null; hasFrozenRounds: boolean }>`
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.9) 0%, rgba(29, 78, 216, 0.95) 50%, rgba(37, 99, 235, 0.9) 100%);
+  backdrop-filter: blur(10px);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 4px;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: ${props => (props.focusedRound !== null || props.hasFrozenRounds) ? '0.25rem' : '1rem'};
   position: sticky;
   top: 0;
   z-index: 10;
   grid-column: ${props => props.roundIndex + 1};
   grid-row: 1;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: ${props => props.roundIndex === 4 ? '80vw' : '250px'}; /* 80% viewport width for final round, 250px for others */
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: ${props => props.roundIndex === 4 ? '80vw' : '250px'};
   margin-left: ${props => props.roundIndex > 0 ? '0.5rem' : '0'};
   margin-right: ${props => props.roundIndex < 4 ? '0.5rem' : '0'};
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.2);
   
-  @media (max-width: 768px) {
-    &:hover {
-      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-      transform: scale(1.02);
-    }
+  &:hover {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(29, 78, 216, 1) 50%, rgba(59, 130, 246, 0.95) 100%);
+    border-color: rgba(59, 130, 246, 0.4);
   }
 `;
 
@@ -101,13 +115,17 @@ const RoundTitle = styled.h3`
   color: white;
   margin: 0;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.025em;
 `;
 
 const RoundDate = styled.div`
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.75rem;
   margin-top: 0.25rem;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 `;
 
 
@@ -121,9 +139,9 @@ const MatchWrapper = styled.div<{
 }>`
   opacity: ${props => props.isCurrentRound ? 1 : 0.7};
   visibility: visible;
-  transition: all 0.3s ease;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  width: ${props => props.focusedRound !== null ? '90%' : '100%'};
+  width: 100%;
   grid-column: ${props => props.roundIndex + 1};
   grid-row: ${props => {
     // Always maintain proper grid positioning regardless of focus
@@ -181,6 +199,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   onAdvanceRound 
 }) => {
   const [focusedRound, setFocusedRound] = useState<number | null>(null);
+  const [frozenRounds, setFrozenRounds] = useState<Set<number>>(new Set());
   const gridRef = useRef<HTMLDivElement>(null);
 
   const canAdvanceCurrentRound = () => {
@@ -194,8 +213,15 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
     // If clicking on Round of 32 (index 0), reset focus to show full view
     if (roundIndex === 0) {
       setFocusedRound(null);
+      setFrozenRounds(new Set()); // Clear frozen rounds
     } else {
       setFocusedRound(roundIndex);
+      // Freeze all rounds that are "behind" the focused round
+      const newFrozenRounds = new Set<number>();
+      for (let i = 0; i < roundIndex; i++) {
+        newFrozenRounds.add(i);
+      }
+      setFrozenRounds(newFrozenRounds);
     }
     
     // Focus viewport on the selected round
@@ -224,11 +250,13 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
         <SectionTitle>🏆 World Cup 2026 Tournament Bracket</SectionTitle>
       </div>
 
-            <BracketGrid ref={gridRef} focusedRound={focusedRound}>
+            <BracketGrid ref={gridRef} focusedRound={focusedRound} hasFrozenRounds={frozenRounds.size > 0}>
         {rounds.map((round, roundIndex) => (
           <RoundColumn key={round.round} roundIndex={roundIndex}>
             <RoundHeader 
               roundIndex={roundIndex}
+              focusedRound={focusedRound}
+              hasFrozenRounds={frozenRounds.size > 0}
               onClick={() => handleRoundHeaderClick(roundIndex)}
             >
               <RoundTitle>{getRoundName(round.round)}</RoundTitle>
@@ -243,6 +271,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 totalMatches={round.matches.length}
                 roundIndex={roundIndex}
                 focusedRound={focusedRound}
+
               >
                 <MatchupCard
                   match={match}

@@ -22,19 +22,23 @@ const TeamContainer = styled.div<{
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: ${props => props.size === 'small' ? '0.25rem 0.375rem' : props.size === 'large' ? '0.5rem 0.75rem' : '0.375rem 0.5rem'};
+  padding: ${props => props.size === 'small' ? '0.375rem 0.5rem' : props.size === 'large' ? '0.5rem 0.75rem' : '0.375rem 0.5rem'};
   background: ${props => {
-    if (props.selected) return 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.3) 100%)';
-    return 'var(--bg-card)';
+    if (props.selected) return 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.25) 100%)';
+    return 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)';
   }};
-  border: 1px solid ${props => {
-    if (props.selected) return '#3b82f6';
-    return 'var(--border-color)';
+  border: ${props => {
+    if (props.selected) return '2px solid rgba(59, 130, 246, 0.8)';
+    return 'none';
   }};
-  border-radius: 6px;
+  box-shadow: ${props => {
+    if (props.selected) return '0 0 0 1px rgba(59, 130, 246, 0.2)';
+    return 'none';
+  }};
+  border-radius: 3px;
   cursor: ${props => props.clickable ? 'pointer' : 'default'};
-  transition: all 0.3s ease;
-  min-width: ${props => props.size === 'small' ? '160px' : props.size === 'large' ? '240px' : '200px'};
+  transition: all 0.2s ease;
+  width: 100%;
   position: relative;
 `;
 
