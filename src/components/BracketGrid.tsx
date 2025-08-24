@@ -138,8 +138,7 @@ const MatchWrapper = styled.div<{
   focusedRound: number | null;
 }>`
   opacity: ${props => props.isCurrentRound ? 1 : 0.7};
-  visibility: visible;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
   position: relative;
   width: 100%;
   grid-column: ${props => props.roundIndex + 1};
@@ -152,6 +151,12 @@ const MatchWrapper = styled.div<{
     if (props.focusedRound !== null) {
       if (props.roundIndex === props.focusedRound) {
         return 'auto'; // Remove grid positioning from focused round
+      } else if (props.roundIndex < props.focusedRound) {
+        // Position rounds to the left at the top with minimal spacing between matchups
+        const baseRow = 2; // Start below header
+        const spacing = 1; // Minimal spacing between matchups
+        const matchupRow = baseRow + (props.position * spacing);
+        return `${matchupRow} / span 1`;
       } else if (props.roundIndex > props.focusedRound) {
         // Recalculate as if focused round is round 0
         const adjustedRoundIndex = props.roundIndex - props.focusedRound;
@@ -168,6 +173,56 @@ const MatchWrapper = styled.div<{
   justify-content: center;
   justify-self: center;
 
+`;
+
+const NavigationDots = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+`;
+
+const NavigationDot = styled.button<{ 
+  isActive: boolean; 
+  isComplete: boolean; 
+  isClickable: boolean;
+}>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: ${props => props.isClickable ? 'pointer' : 'default'};
+  transition: all 0.3s ease;
+  background: ${props => {
+    if (props.isActive) return 'var(--primary-gradient)';
+    if (props.isComplete) return 'var(--success-gradient)';
+    return 'rgba(255, 255, 255, 0.2)';
+  }};
+  box-shadow: ${props => props.isActive ? '0 0 8px rgba(59, 130, 246, 0.5)' : 'none'};
+  
+  &:hover {
+    transform: ${props => props.isClickable ? 'scale(1.2)' : 'scale(1)'};
+  }
+`;
+
+const RoundLabel = styled.div<{ isActive: boolean; isComplete: boolean }>`
+  font-size: 0.75rem;
+  color: ${props => {
+    if (props.isActive) return 'var(--primary-color)';
+    if (props.isComplete) return 'var(--success-color)';
+    return 'var(--text-secondary)';
+  }};
+  text-align: center;
+  margin-top: 0.25rem;
+  font-weight: ${props => props.isActive ? '600' : '400'};
+`;
+
+const NavigationContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const getRoundDates = (round: number): string => {
@@ -209,7 +264,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
     return roundData.matches.every(match => match.winner !== null);
   };
 
-  const handleRoundHeaderClick = (roundIndex: number) => {
+    const handleRoundHeaderClick = (roundIndex: number) => {
     // If clicking on Round of 32 (index 0), reset focus to show full view
     if (roundIndex === 0) {
       setFocusedRound(null);
@@ -244,11 +299,58 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
     }
   };
 
+  // Auto-advance to next round when current round is complete
+  useEffect(() => {
+    if (currentRound <= rounds.length) {
+      const currentRoundData = rounds[currentRound - 1];
+      if (currentRoundData && currentRoundData.matches.every(match => match.winner !== null)) {
+        // Auto-advance after a short delay
+        const timer = setTimeout(() => {
+          // Advance to next round
+          onAdvanceRound();
+          
+          // Maintain focus on the next round to keep condensed layout
+          const nextRoundIndex = currentRound;
+          if (nextRoundIndex < rounds.length) {
+            setFocusedRound(nextRoundIndex);
+            // Freeze all rounds that are "behind" the focused round
+            const newFrozenRounds = new Set<number>();
+            for (let i = 0; i < nextRoundIndex; i++) {
+              newFrozenRounds.add(i);
+            }
+            setFrozenRounds(newFrozenRounds);
+          }
+        }, 1000); // 1 second delay
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [rounds, currentRound, onAdvanceRound]);
+
   return (
     <BracketContainer>
       <div style={{ marginBottom: '3rem' }}>
         <SectionTitle>🏆 World Cup 2026 Tournament Bracket</SectionTitle>
       </div>
+
+      <NavigationDots>
+        {rounds.map((round, roundIndex) => {
+          const isActive = focusedRound === roundIndex;
+          const isComplete = round.isComplete;
+          const isClickable = true; // All rounds are clickable
+          
+          return (
+            <NavigationDot
+              key={round.round}
+              isActive={isActive}
+              isComplete={isComplete}
+              isClickable={isClickable}
+              onClick={() => handleRoundHeaderClick(roundIndex)}
+              title={`${getRoundName(round.round)} - ${isComplete ? 'Complete' : 'In Progress'}`}
+            />
+          );
+        })}
+      </NavigationDots>
 
             <BracketGrid ref={gridRef} focusedRound={focusedRound} hasFrozenRounds={frozenRounds.size > 0}>
         {rounds.map((round, roundIndex) => (
@@ -275,12 +377,8 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
               >
                 <MatchupCard
                   match={match}
-                  onSelectWinner={
-                    !round.isComplete
-                      ? (teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)
-                      : undefined
-                  }
-                  disabled={round.isComplete}
+                  onSelectWinner={(teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)}
+                  disabled={false}
                   isCurrentRound={round.round === currentRound}
                 />
                 {roundIndex < rounds.length - 1 && (
