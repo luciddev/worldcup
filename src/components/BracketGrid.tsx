@@ -51,7 +51,7 @@ const BracketGrid = styled.div<{ focusedRound: number | null; hasFrozenRounds: b
   min-height: 2000px;
   padding: 0;
   position: relative;
-  transition: gap 0.4s ease, column-gap 0.4s ease;
+  transition: gap 0.3s ease, column-gap 0.3s ease;
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   
   @keyframes fadeInUp {
@@ -138,6 +138,7 @@ const MatchWrapper = styled.div<{
   focusedRound: number | null;
 }>`
   opacity: ${props => props.isCurrentRound ? 1 : 0.7};
+  transition: opacity 0.3s ease;
 
   position: relative;
   width: 100%;
