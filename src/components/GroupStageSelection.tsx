@@ -303,7 +303,7 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
 
   const canSelectThirdPlace = (groupId: string): boolean => {
     const selection = groupSelections[groupId];
-    return selection?.first && selection?.second; // Can only select 3rd place if 1st and 2nd are selected
+    return !!(selection?.first && selection?.second); // Can only select 3rd place if 1st and 2nd are selected
   };
 
   return (
@@ -382,7 +382,7 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
           const isThirdSelected = selectedThirdPlaceTeams.some(team => team.id === thirdPlaceTeam?.id);
           
           return (
-            <GroupCard key={group.id} isComplete={isComplete}>
+            <GroupCard key={group.id} isComplete={!!isComplete}>
               <GroupHeader>{group.name}</GroupHeader>
               <TeamList>
                 {group.teams.map((team, index) => {
