@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Group, Team as TeamType } from '../types';
 import Team from './Team';
+import TeamSelectionView from './TeamSelectionView';
 import { Button, Card, Section, SectionTitle, Flex, Badge, Grid } from './styled/Common';
 
 interface PlayInRoundProps {
@@ -75,6 +76,7 @@ const ProgressFill = styled.div<{ progress: number }>`
 
 const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
   const [groupSelections, setGroupSelections] = useState<{ [groupId: string]: { first: TeamType | null; second: TeamType | null } }>({});
+  const [viewMode, setViewMode] = useState<'groups' | 'selection'>('groups');
 
   const handleTeamClick = (groupId: string, team: TeamType) => {
     setGroupSelections(prev => {
@@ -165,10 +167,53 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
 
   const canComplete = completedGroups === groups.length;
 
+  const ViewToggle = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  `;
+
+  const ToggleButton = styled.button<{ active: boolean }>`
+    background: ${props => props.active ? 'var(--primary-gradient)' : 'var(--bg-card)'};
+    color: ${props => props.active ? 'white' : 'var(--text-primary)'};
+    border: 1px solid ${props => props.active ? 'var(--primary-color)' : 'var(--border-color)'};
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+  `;
+
   return (
     <PlayInContainer>
-      <Section>
-        <SectionTitle>🏆 Play-in Tournament - Group Stage</SectionTitle>
+      <ViewToggle>
+        <ToggleButton 
+          active={viewMode === 'groups'} 
+          onClick={() => setViewMode('groups')}
+        >
+          📊 Group View
+        </ToggleButton>
+        <ToggleButton 
+          active={viewMode === 'selection'} 
+          onClick={() => setViewMode('selection')}
+        >
+          🎯 Team Selection
+        </ToggleButton>
+      </ViewToggle>
+
+      {viewMode === 'selection' ? (
+        <TeamSelectionView onComplete={onComplete} />
+      ) : (
+        <>
+          <Section>
+            <SectionTitle>🏆 Play-in Tournament - Group Stage</SectionTitle>
         
         <Instructions>
           <h3 style={{ color: '#3b82f6', marginBottom: '1rem' }}>
@@ -295,6 +340,8 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
             })}
           </Flex>
         </Card>
+      )}
+        </>
       )}
     </PlayInContainer>
   );
