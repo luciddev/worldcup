@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Group, Team as TeamType } from '../types';
 import Team from './Team';
 import TeamSelectionView from './TeamSelectionView';
+import GroupStageSelection from './GroupStageSelection';
 import { Button, Card, Section, SectionTitle, Flex, Badge, Grid } from './styled/Common';
 
 interface PlayInRoundProps {
@@ -76,7 +77,7 @@ const ProgressFill = styled.div<{ progress: number }>`
 
 const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
   const [groupSelections, setGroupSelections] = useState<{ [groupId: string]: { first: TeamType | null; second: TeamType | null } }>({});
-  const [viewMode, setViewMode] = useState<'groups' | 'selection'>('groups');
+  const [viewMode, setViewMode] = useState<'groups' | 'selection' | 'group-stage'>('groups');
 
   const handleTeamClick = (groupId: string, team: TeamType) => {
     setGroupSelections(prev => {
@@ -206,10 +207,18 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
         >
           🎯 Team Selection
         </ToggleButton>
+        <ToggleButton 
+          active={viewMode === 'group-stage'} 
+          onClick={() => setViewMode('group-stage')}
+        >
+          🏆 2026 Group Stage
+        </ToggleButton>
       </ViewToggle>
 
       {viewMode === 'selection' ? (
         <TeamSelectionView onComplete={onComplete} />
+      ) : viewMode === 'group-stage' ? (
+        <GroupStageSelection groups={groups} onComplete={onComplete} />
       ) : (
         <>
           <Section>
