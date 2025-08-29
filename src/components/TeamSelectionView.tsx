@@ -109,6 +109,31 @@ const TeamDetails = styled.div`
   margin-top: 0.25rem;
 `;
 
+const GroupSection = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const GroupHeader = styled.div`
+  background: var(--primary-gradient);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: center;
+`;
+
+const TeamItemDisabled = styled(TeamItem)`
+  opacity: 0.5;
+  cursor: not-allowed;
+  
+  &:hover {
+    transform: none;
+    box-shadow: none;
+  }
+`;
+
 const DragHandle = styled.div`
   color: var(--text-secondary);
   cursor: grab;
@@ -144,12 +169,30 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
   const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
   const [draggedTeam, setDraggedTeam] = useState<Team | null>(null);
 
+  // Group teams by their group (every 4 teams = 1 group)
+  const getTeamGroup = (teamId: number): string => {
+    const groupIndex = Math.floor((teamId - 1) / 4);
+    return String.fromCharCode(65 + groupIndex); // A, B, C, etc.
+  };
+
+  // Check if we can add more teams from a specific group
+  const canAddFromGroup = (groupId: string): boolean => {
+    const teamsFromGroup = selectedTeams.filter(team => getTeamGroup(team.id) === groupId);
+    return teamsFromGroup.length < 3;
+  };
+
   const handleTeamClick = (team: Team, fromSelected: boolean) => {
     if (fromSelected) {
       // Move from selected to available
       setSelectedTeams(prev => prev.filter(t => t.id !== team.id));
       setAvailableTeams(prev => [...prev, team]);
     } else {
+      // Check if we can add more teams from this group
+      const teamGroup = getTeamGroup(team.id);
+      if (!canAddFromGroup(teamGroup)) {
+        return; // Can't add more teams from this group
+      }
+      
       // Move from available to selected
       setAvailableTeams(prev => prev.filter(t => t.id !== team.id));
       setSelectedTeams(prev => [...prev, team]);
@@ -171,6 +214,13 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
     if (!draggedTeam) return;
 
     if (targetList === 'selected') {
+      // Check if we can add more teams from this group
+      const teamGroup = getTeamGroup(draggedTeam.id);
+      if (!canAddFromGroup(teamGroup)) {
+        setDraggedTeam(null);
+        return; // Can't add more teams from this group
+      }
+      
       // Move to selected
       setAvailableTeams(prev => prev.filter(t => t.id !== draggedTeam.id));
       setSelectedTeams(prev => [...prev, draggedTeam]);
@@ -205,9 +255,10 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
       
       <Instructions>
         <p><strong>How to use:</strong></p>
-        <p>1. Click or drag teams from the left column to the right</p>
+        <p>1. Click or drag teams from the left column to the right (max 3 per group)</p>
         <p>2. Drag teams in the right column to reorder them (1st place = top)</p>
         <p>3. Select at least 8 teams to continue</p>
+        <p><strong>Note:</strong> Teams are organized by their group (A-P). You can select up to 3 teams from each group.</p>
       </Instructions>
 
       <ColumnsContainer>
@@ -218,24 +269,41 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'available')}
           >
-            {availableTeams.map((team) => (
-              <TeamItem
-                key={team.id}
-                isDragging={draggedTeam?.id === team.id}
-                isSelected={false}
-                onClick={() => handleTeamClick(team, false)}
-                draggable
-                onDragStart={(e) => handleDragStart(e, team)}
-                onDragEnd={handleDragEnd}
-              >
-                <TeamFlag>{team.flag}</TeamFlag>
-                <TeamInfo>
-                  <TeamName>{team.name}</TeamName>
-                  <TeamDetails>Seed {team.seed} • {team.region}</TeamDetails>
-                </TeamInfo>
-                <DragHandle>⋮⋮</DragHandle>
-              </TeamItem>
-            ))}
+            {Array.from({ length: 16 }, (_, i) => {
+              const groupId = String.fromCharCode(65 + i);
+              const groupTeams = availableTeams.filter(team => getTeamGroup(team.id) === groupId);
+              
+              if (groupTeams.length === 0) return null;
+              
+              return (
+                <GroupSection key={groupId}>
+                  <GroupHeader>Group {groupId}</GroupHeader>
+                  {groupTeams.map((team) => {
+                    const canAdd = canAddFromGroup(groupId);
+                    const TeamComponent = canAdd ? TeamItem : TeamItemDisabled;
+                    
+                    return (
+                      <TeamComponent
+                        key={team.id}
+                        isDragging={draggedTeam?.id === team.id}
+                        isSelected={false}
+                        onClick={() => canAdd && handleTeamClick(team, false)}
+                        draggable={canAdd}
+                        onDragStart={canAdd ? (e) => handleDragStart(e, team) : undefined}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <TeamFlag>{team.flag}</TeamFlag>
+                        <TeamInfo>
+                          <TeamName>{team.name}</TeamName>
+                          <TeamDetails>Seed {team.seed} • {team.region} • Group {groupId}</TeamDetails>
+                        </TeamInfo>
+                        <DragHandle>⋮⋮</DragHandle>
+                      </TeamComponent>
+                    );
+                  })}
+                </GroupSection>
+              );
+            })}
           </TeamList>
         </Column>
 
@@ -260,7 +328,7 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
                 <TeamFlag>{team.flag}</TeamFlag>
                 <TeamInfo>
                   <TeamName>{team.name}</TeamName>
-                  <TeamDetails>#{index + 1} • Seed {team.seed} • {team.region}</TeamDetails>
+                  <TeamDetails>#{index + 1} • Seed {team.seed} • {team.region} • Group {getTeamGroup(team.id)}</TeamDetails>
                 </TeamInfo>
                 <DragHandle>⋮⋮</DragHandle>
               </TeamItem>
