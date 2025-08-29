@@ -4,6 +4,7 @@ import { Group, Team as TeamType } from '../types';
 import Team from './Team';
 import TeamSelectionView from './TeamSelectionView';
 import GroupStageSelection from './GroupStageSelection';
+import GroupRankingView from './GroupRankingView';
 import { Button, Card, Section, SectionTitle, Flex, Badge, Grid } from './styled/Common';
 
 interface PlayInRoundProps {
@@ -77,7 +78,7 @@ const ProgressFill = styled.div<{ progress: number }>`
 
 const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
   const [groupSelections, setGroupSelections] = useState<{ [groupId: string]: { first: TeamType | null; second: TeamType | null } }>({});
-  const [viewMode, setViewMode] = useState<'groups' | 'selection' | 'group-stage'>('groups');
+  const [viewMode, setViewMode] = useState<'groups' | 'selection' | 'group-stage' | 'ranking'>('groups');
 
   const handleTeamClick = (groupId: string, team: TeamType) => {
     setGroupSelections(prev => {
@@ -213,12 +214,30 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
         >
           🏆 2026 Group Stage
         </ToggleButton>
+        <ToggleButton 
+          active={viewMode === 'ranking'} 
+          onClick={() => setViewMode('ranking')}
+        >
+          📊 Group Rankings
+        </ToggleButton>
       </ViewToggle>
 
       {viewMode === 'selection' ? (
         <TeamSelectionView onComplete={onComplete} />
       ) : viewMode === 'group-stage' ? (
         <GroupStageSelection groups={groups} onComplete={onComplete} />
+      ) : viewMode === 'ranking' ? (
+        <GroupRankingView groups={groups} onComplete={(rankedGroups) => {
+          // Convert ranked groups to the format expected by onComplete
+          const allTeams: TeamType[] = [];
+          rankedGroups.forEach(groupObj => {
+            const groupId = Object.keys(groupObj)[0];
+            const teams = groupObj[groupId];
+            // Take top 2 teams from each group
+            allTeams.push(teams[0], teams[1]);
+          });
+          onComplete(allTeams);
+        }} />
       ) : (
         <>
           <Section>
