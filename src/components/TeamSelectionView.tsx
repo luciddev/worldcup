@@ -178,7 +178,7 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
   // Check if we can add more teams from a specific group
   const canAddFromGroup = (groupId: string): boolean => {
     const teamsFromGroup = selectedTeams.filter(team => getTeamGroup(team.id) === groupId);
-    return teamsFromGroup.length < 3;
+    return teamsFromGroup.length < 2;
   };
 
   const handleTeamClick = (team: Team, fromSelected: boolean) => {
@@ -255,10 +255,10 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
       
       <Instructions>
         <p><strong>How to use:</strong></p>
-        <p>1. Click or drag teams from the left column to the right (max 3 per group)</p>
+        <p>1. Click or drag teams from the left column to the right (max 2 per group)</p>
         <p>2. Drag teams in the right column to reorder them (1st place = top)</p>
         <p>3. Select at least 8 teams to continue</p>
-        <p><strong>Note:</strong> Teams are organized by their group (A-P). You can select up to 3 teams from each group.</p>
+        <p><strong>Note:</strong> Teams are organized by their group (A-L). You can select up to 2 teams from each group.</p>
       </Instructions>
 
       <ColumnsContainer>
@@ -269,7 +269,7 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'available')}
           >
-            {Array.from({ length: 16 }, (_, i) => {
+            {Array.from({ length: 12 }, (_, i) => {
               const groupId = String.fromCharCode(65 + i);
               const groupTeams = availableTeams.filter(team => getTeamGroup(team.id) === groupId);
               

@@ -84,9 +84,9 @@ export const getAllTeams = (): Team[] => {
 };
 
 export const createPlayInGroups = (): Team[][] => {
-  // Create 16 groups of 4 teams each
+  // Create 12 groups of 4 teams each
   const groups: Team[][] = [];
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 12; i++) {
     const groupTeams = teams.slice(i * 4, (i + 1) * 4);
     groups.push(groupTeams);
   }

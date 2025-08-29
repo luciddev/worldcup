@@ -5,8 +5,8 @@ export const createPlayInGroupsData = (): Group[] => {
   const allTeams = getAllTeams();
   const groups: Group[] = [];
   
-  // Create 16 groups of 4 teams each
-  for (let i = 0; i < 16; i++) {
+  // Create 12 groups of 4 teams each
+  for (let i = 0; i < 12; i++) {
     const groupTeams = allTeams.slice(i * 4, (i + 1) * 4);
     const standings: TeamStanding[] = groupTeams.map((team, index) => ({
       team,
@@ -34,14 +34,14 @@ export const createPlayInGroupsData = (): Group[] => {
 export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
   const rounds: TournamentRound[] = [];
   
-  // Round of 48 (Group Stage - 12 groups of 4 teams each)
-  const round48Matches: Match[] = [];
-  for (let i = 0; i < 24; i++) {
+  // Round of 32 (Top 2 from each group + 8 best 3rd place teams)
+  const round32Matches: Match[] = [];
+  for (let i = 0; i < 16; i++) {
     const team1 = teams[i * 2];
     const team2 = teams[i * 2 + 1];
     
-    round48Matches.push({
-      id: `r48-${i + 1}`,
+    round32Matches.push({
+      id: `r32-${i + 1}`,
       team1,
       team2,
       winner: null,
@@ -52,26 +52,6 @@ export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
   
   rounds.push({
     round: 1,
-    name: "Group Stage",
-    matches: round48Matches,
-    isComplete: false
-  });
-  
-  // Round of 32 (Top 2 from each group + 8 best 3rd place teams)
-  const round32Matches: Match[] = [];
-  for (let i = 0; i < 16; i++) {
-    round32Matches.push({
-      id: `r32-${i + 1}`,
-      team1: null,
-      team2: null,
-      winner: null,
-      round: 2,
-      matchNumber: i + 1
-    });
-  }
-  
-  rounds.push({
-    round: 2,
     name: "Round of 32",
     matches: round32Matches,
     isComplete: false
@@ -85,13 +65,13 @@ export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
       team1: null,
       team2: null,
       winner: null,
-      round: 3,
+      round: 2,
       matchNumber: i + 1
     });
   }
   
   rounds.push({
-    round: 3,
+    round: 2,
     name: "Round of 16",
     matches: round16Matches,
     isComplete: false
@@ -105,13 +85,13 @@ export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
       team1: null,
       team2: null,
       winner: null,
-      round: 4,
+      round: 3,
       matchNumber: i + 1
     });
   }
   
   rounds.push({
-    round: 4,
+    round: 3,
     name: "Quarter Finals",
     matches: quarterMatches,
     isComplete: false
@@ -125,13 +105,13 @@ export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
       team1: null,
       team2: null,
       winner: null,
-      round: 5,
+      round: 4,
       matchNumber: i + 1
     });
   }
   
   rounds.push({
-    round: 5,
+    round: 4,
     name: "Semi Finals",
     matches: semiMatches,
     isComplete: false
@@ -143,16 +123,18 @@ export const createBracketRounds = (teams: Team[]): TournamentRound[] => {
     team1: null,
     team2: null,
     winner: null,
-    round: 6,
+    round: 5,
     matchNumber: 1
   }];
   
   rounds.push({
-    round: 6,
+    round: 5,
     name: "Final",
     matches: finalMatch,
     isComplete: false
   });
+  
+
   
   return rounds;
 };
