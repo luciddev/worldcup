@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { TournamentRound, Match as MatchType } from '../types';
+import { TournamentRound } from '../types';
 import MatchupCard from './MatchupCard';
 import BracketLines from './BracketLines';
-import { Card, Section, SectionTitle } from './styled/Common';
+import { Card, SectionTitle } from './styled/Common';
 
 interface BracketGridProps {
   rounds: TournamentRound[];
@@ -184,9 +184,9 @@ const NavigationDots = styled.div`
   flex-wrap: wrap;
 `;
 
-const NavigationDot = styled.button<{ 
-  isActive: boolean; 
-  isComplete: boolean; 
+const NavigationDot = styled.button<{
+  isActive: boolean;
+  isComplete: boolean;
   isClickable: boolean;
 }>`
   width: 12px;
@@ -201,29 +201,10 @@ const NavigationDot = styled.button<{
     return 'rgba(255, 255, 255, 0.2)';
   }};
   box-shadow: ${props => props.isActive ? '0 0 8px rgba(59, 130, 246, 0.5)' : 'none'};
-  
+
   &:hover {
     transform: ${props => props.isClickable ? 'scale(1.2)' : 'scale(1)'};
   }
-`;
-
-const RoundLabel = styled.div<{ isActive: boolean; isComplete: boolean }>`
-  font-size: 0.75rem;
-  color: ${props => {
-    if (props.isActive) return 'var(--primary-color)';
-    if (props.isComplete) return 'var(--success-color)';
-    return 'var(--text-secondary)';
-  }};
-  text-align: center;
-  margin-top: 0.25rem;
-  font-weight: ${props => props.isActive ? '600' : '400'};
-`;
-
-const NavigationContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
 `;
 
 const getRoundDates = (round: number): string => {

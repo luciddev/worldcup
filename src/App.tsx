@@ -7,6 +7,7 @@ import PlayInRound from './components/PlayInRound';
 import BracketGridComponent from './components/BracketGrid';
 import TestControls from './components/TestControls';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AppContent: React.FC = () => {
   const [tournamentState, setTournamentState] = useState<TournamentState>(getInitialTournamentState());
@@ -24,11 +25,9 @@ const AppContent: React.FC = () => {
     const team = getTeamById(teamId);
     if (!team) return;
 
-    console.log(`Selecting winner: ${team.name} in round ${roundIndex + 1}, match ${matchIndex + 1}`);
-
     const updatedRounds = [...tournamentState.rounds];
     const currentRound = updatedRounds[roundIndex];
-    
+
     // Set the winner for the current match
     currentRound.matches[matchIndex].winner = team;
 
@@ -36,15 +35,13 @@ const AppContent: React.FC = () => {
     if (roundIndex < updatedRounds.length - 1) {
       const nextRound = updatedRounds[roundIndex + 1];
       const nextMatchIndex = Math.floor(matchIndex / 2);
-      
+
       if (matchIndex % 2 === 0) {
         // First match of the pair - goes to team1
         nextRound.matches[nextMatchIndex].team1 = team;
-        console.log(`Advanced ${team.name} to next round (team1) at match ${nextMatchIndex + 1}`);
       } else {
         // Second match of the pair - goes to team2
         nextRound.matches[nextMatchIndex].team2 = team;
-        console.log(`Advanced ${team.name} to next round (team2) at match ${nextMatchIndex + 1}`);
       }
     }
 
@@ -52,7 +49,6 @@ const AppContent: React.FC = () => {
     const isRoundComplete = currentRound.matches.every(match => match.winner !== null);
     if (isRoundComplete) {
       currentRound.isComplete = true;
-      console.log(`Round ${roundIndex + 1} is now complete`);
     }
 
     setTournamentState({
@@ -177,9 +173,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 
