@@ -85,11 +85,12 @@ const TeamList = styled.div`
   gap: 0.5rem;
 `;
 
-const TeamItem = styled.div<{ 
-  isSelected: boolean; 
+const TeamItem = styled.div<{
+  isSelected: boolean;
   position: number;
   isThirdPlace: boolean;
   canSelectThird: boolean;
+  isClickable: boolean;
 }>`
   background: ${props => {
     if (props.isSelected) return 'var(--primary-gradient)';
@@ -107,12 +108,13 @@ const TeamItem = styled.div<{
   align-items: center;
   gap: 0.75rem;
   transition: all 0.2s ease;
-  cursor: ${props => props.isThirdPlace && props.canSelectThird ? 'pointer' : 'default'};
-  
-  ${props => props.isThirdPlace && props.canSelectThird && `
+  cursor: ${props => props.isClickable ? 'pointer' : 'default'};
+
+  ${props => props.isClickable && `
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px var(--shadow);
+      border-color: ${props.isSelected ? 'var(--primary-color)' : 'rgba(59, 130, 246, 0.5)'};
     }
   `}
 `;
@@ -228,33 +230,61 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
   const firstPlaceCount = Object.values(groupSelections).filter(selection => selection.first).length;
   const secondPlaceCount = Object.values(groupSelections).filter(selection => selection.second).length;
 
-  const handleTeamClick = (groupId: string, team: Team, position: 1 | 2) => {
+  const handleTeamClick = (groupId: string, team: Team) => {
     setGroupSelections(prev => {
       const current = prev[groupId] || { first: null, second: null };
-      
-      if (position === 1) {
-        // If clicking on first position
-        if (current.first?.id === team.id) {
-          // Remove from first
-          return { ...prev, [groupId]: { first: null, second: current.second } };
-        } else if (current.second?.id === team.id) {
-          // Move from second to first
-          return { ...prev, [groupId]: { first: team, second: null } };
-        } else {
-          // Set as first, remove from second if it was there
-          return { ...prev, [groupId]: { first: team, second: current.second } };
-        }
+
+      // Check if this team is already selected
+      const isFirst = current.first?.id === team.id;
+      const isSecond = current.second?.id === team.id;
+
+      if (isFirst) {
+        // Clicking on 1st: swap with 2nd (2nd becomes 1st, clicked team becomes unranked)
+        return {
+          ...prev,
+          [groupId]: {
+            first: current.second,  // 2nd becomes 1st (or null if no 2nd)
+            second: null            // Clicked team loses ranking
+          }
+        };
+      } else if (isSecond) {
+        // Clicking on 2nd: remove it
+        return {
+          ...prev,
+          [groupId]: {
+            first: current.first,
+            second: null
+          }
+        };
       } else {
-        // If clicking on second position
-        if (current.second?.id === team.id) {
-          // Remove from second
-          return { ...prev, [groupId]: { first: current.first, second: null } };
-        } else if (current.first?.id === team.id) {
-          // Move from first to second
-          return { ...prev, [groupId]: { first: null, second: team } };
+        // Clicking on unselected team
+        if (!current.first) {
+          // No 1st yet: make this 1st
+          return {
+            ...prev,
+            [groupId]: {
+              first: team,
+              second: current.second
+            }
+          };
+        } else if (!current.second) {
+          // 1st exists but no 2nd: make this 2nd
+          return {
+            ...prev,
+            [groupId]: {
+              first: current.first,
+              second: team
+            }
+          };
         } else {
-          // Set as second, remove from first if it was there
-          return { ...prev, [groupId]: { first: current.first, second: team } };
+          // Both exist: replace 2nd with this team
+          return {
+            ...prev,
+            [groupId]: {
+              first: current.first,
+              second: team
+            }
+          };
         }
       }
     });
@@ -360,7 +390,7 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
           <SummaryTitle>Selected Third-Place Teams</SummaryTitle>
           <SummaryGrid>
             {selectedThirdPlaceTeams.map((team, index) => (
-              <TeamItem key={team.id} isSelected={true} position={3} isThirdPlace={true} canSelectThird={false}>
+              <TeamItem key={team.id} isSelected={true} position={3} isThirdPlace={true} canSelectThird={false} isClickable={false}>
                 <TeamFlag>{team.flag}</TeamFlag>
                 <TeamInfo>
                   <TeamName>{team.name}</TeamName>
@@ -386,24 +416,26 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
               <GroupHeader>{group.name}</GroupHeader>
               <TeamList>
                 {group.teams.map((team, index) => {
-                  const position = index + 1;
-                  const isSelected = (selection?.first?.id === team.id) || (selection?.second?.id === team.id);
                   const isFirst = selection?.first?.id === team.id;
                   const isSecond = selection?.second?.id === team.id;
-                  
+                  const isSelected = isFirst || isSecond;
+                  const isThirdInArray = index === 2; // 3rd team in array (for stage 2)
+
+                  // Determine if this team is clickable
+                  const isClickable = stage === 'group-selection' || (stage === 'third-place-selection' && isThirdInArray && canSelectThird);
+
                   return (
-                    <TeamItem 
-                      key={team.id} 
+                    <TeamItem
+                      key={team.id}
                       isSelected={isSelected}
-                      position={position}
-                      isThirdPlace={position === 3}
-                      canSelectThird={position === 3 && canSelectThird && stage === 'third-place-selection'}
+                      position={isFirst ? 1 : isSecond ? 2 : index + 1}
+                      isThirdPlace={isThirdInArray}
+                      canSelectThird={isThirdInArray && canSelectThird && stage === 'third-place-selection'}
+                      isClickable={isClickable}
                       onClick={() => {
                         if (stage === 'group-selection') {
-                          if (position <= 2) {
-                            handleTeamClick(group.id, team, position as 1 | 2);
-                          }
-                        } else if (stage === 'third-place-selection' && position === 3 && canSelectThird) {
+                          handleTeamClick(group.id, team);
+                        } else if (stage === 'third-place-selection' && isThirdInArray && canSelectThird) {
                           handleThirdPlaceClick(group);
                         }
                       }}
@@ -413,12 +445,17 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
                         <TeamName>{team.name}</TeamName>
                         <TeamDetails>Seed {team.seed} • {team.region}</TeamDetails>
                       </TeamInfo>
-                      <PositionBadge position={position}>
-                        {position === 1 ? '1st' : position === 2 ? '2nd' : position === 3 ? '3rd' : '4th'}
-                        {isFirst && ' ✓'}
-                        {isSecond && ' ✓'}
-                        {position === 3 && isThirdSelected && ' ✓'}
-                      </PositionBadge>
+                      {/* Only show badge if team is selected (1st or 2nd) or in stage 2 for 3rd place */}
+                      {(isFirst || isSecond) && (
+                        <PositionBadge position={isFirst ? 1 : 2}>
+                          {isFirst ? '1st ✓' : '2nd ✓'}
+                        </PositionBadge>
+                      )}
+                      {stage === 'third-place-selection' && isThirdInArray && canSelectThird && (
+                        <PositionBadge position={3}>
+                          {isThirdSelected ? '3rd ✓' : '3rd'}
+                        </PositionBadge>
+                      )}
                     </TeamItem>
                   );
                 })}
