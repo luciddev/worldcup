@@ -3,21 +3,69 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="World Cup 2026 Tournament Bracket - Make your predictions!"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)" />
+
+    <!-- Primary Meta Tags -->
+    <title>World Cup 2026 Tournament Bracket Challenge | Interactive Predictions</title>
+    <meta name="title" content="World Cup 2026 Tournament Bracket Challenge | Interactive Predictions" />
+    <meta name="description" content="Create your World Cup 2026 tournament bracket predictions! Interactive 48-team bracket with group stage, knockout rounds, and real-time progress tracking. Make your picks now!" />
+    <meta name="keywords" content="World Cup 2026, tournament bracket, soccer predictions, football bracket, World Cup predictions, sports bracket challenge" />
+    <meta name="author" content="World Cup 2026 Bracket" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://worldcup2026.example.com/" />
+    <meta property="og:title" content="World Cup 2026 Tournament Bracket Challenge" />
+    <meta property="og:description" content="Create your World Cup 2026 tournament bracket predictions! Interactive 48-team bracket with group stage and knockout rounds." />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://worldcup2026.example.com/" />
+    <meta property="twitter:title" content="World Cup 2026 Tournament Bracket Challenge" />
+    <meta property="twitter:description" content="Create your World Cup 2026 tournament bracket predictions! Interactive 48-team bracket with group stage and knockout rounds." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.png" />
+
+    <!-- PWA -->
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <title>World Cup 2026 - Tournament Bracket</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="World Cup 2026" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "World Cup 2026 Tournament Bracket Challenge",
+      "description": "Interactive World Cup 2026 tournament bracket prediction tool",
+      "url": "https://worldcup2026.example.com/",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>This World Cup 2026 Tournament Bracket application requires JavaScript to run.</p>
+        <p>Please enable JavaScript in your browser settings to use this app.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
   </body>
 </html>

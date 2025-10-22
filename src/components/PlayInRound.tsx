@@ -76,6 +76,30 @@ const ProgressFill = styled.div<{ progress: number }>`
   transition: width 0.5s ease;
 `;
 
+const ViewToggle = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const ToggleButton = styled.button<{ active: boolean }>`
+  background: ${props => props.active ? 'var(--primary-gradient)' : 'var(--bg-card)'};
+  color: ${props => props.active ? 'white' : 'var(--text-primary)'};
+  border: 1px solid ${props => props.active ? 'var(--primary-color)' : 'var(--border-color)'};
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+`;
+
 const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
   const [groupSelections, setGroupSelections] = useState<{ [groupId: string]: { first: TeamType | null; second: TeamType | null } }>({});
   const [viewMode, setViewMode] = useState<'groups' | 'selection' | 'group-stage' | 'ranking'>('groups');
@@ -168,30 +192,6 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
   };
 
   const canComplete = completedGroups === groups.length;
-
-  const ViewToggle = styled.div`
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  `;
-
-  const ToggleButton = styled.button<{ active: boolean }>`
-    background: ${props => props.active ? 'var(--primary-gradient)' : 'var(--bg-card)'};
-    color: ${props => props.active ? 'white' : 'var(--text-primary)'};
-    border: 1px solid ${props => props.active ? 'var(--primary-color)' : 'var(--border-color)'};
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px var(--shadow);
-    }
-  `;
 
   return (
     <PlayInContainer>

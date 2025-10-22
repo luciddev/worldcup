@@ -236,13 +236,6 @@ const TeamSelectionView: React.FC<TeamSelectionViewProps> = ({ onComplete }) => 
     setDraggedTeam(null);
   };
 
-  const moveTeamInList = (fromIndex: number, toIndex: number) => {
-    const newSelectedTeams = [...selectedTeams];
-    const [movedTeam] = newSelectedTeams.splice(fromIndex, 1);
-    newSelectedTeams.splice(toIndex, 0, movedTeam);
-    setSelectedTeams(newSelectedTeams);
-  };
-
   const handleComplete = () => {
     if (selectedTeams.length >= 8) {
       onComplete(selectedTeams.slice(0, 8)); // Take first 8 teams

@@ -29,22 +29,22 @@ const BracketLine = styled.div<{
     top: 50%;
     width: 0.5rem;
     height: 3px;
-    background: 'var(--border-color)';
+    background: var(--border-color);
     display: block;
     transform: translateY(-50%);
   }
-  
+
   /* Vertical line for bracket connections */
   &::after {
     content: '';
     position: absolute;
     right: 0;
     top: ${props => {
-      const { matchIndex, roundIndex } = props;
-      
+      const { matchIndex } = props;
+
       // Determine if this is the top or bottom match of the pair
       const isTopMatch = matchIndex % 2 === 0;
-      
+
       if (isTopMatch) {
         // Top match - line goes down to center
         return '50%';
@@ -55,10 +55,10 @@ const BracketLine = styled.div<{
     }};
     width: 3px;
     height: ${props => {
-      const { matchIndex, roundIndex } = props;
-      
+      const { matchIndex } = props;
+
       const isTopMatch = matchIndex % 2 === 0;
-      
+
       if (isTopMatch) {
         // Top match - line extends down to center
         return '50%';
@@ -67,7 +67,7 @@ const BracketLine = styled.div<{
         return '50%';
       }
     }};
-    background: 'var(--border-color)';
+    background: var(--border-color);
     display: block;
   }
 `;
