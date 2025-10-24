@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Group, Team as TeamType } from '../types';
 import Team from './Team';
@@ -6,6 +6,7 @@ import TeamSelectionView from './TeamSelectionView';
 import GroupStageSelection from './GroupStageSelection';
 import GroupRankingView from './GroupRankingView';
 import { Button, Card, Section, SectionTitle, Flex, Badge, Grid } from './styled/Common';
+import { TOURNAMENT_CONFIG } from '../constants/tournament';
 
 interface PlayInRoundProps {
   groups: Group[];
@@ -171,22 +172,32 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
     return null;
   };
 
-  const completedGroups = Object.keys(groupSelections).filter(
-    groupId => groupSelections[groupId].first && groupSelections[groupId].second
-  ).length;
+  /**
+   * Memoized calculation of completed groups
+   */
+  const completedGroups = useMemo(() => {
+    return Object.keys(groupSelections).filter(
+      groupId => groupSelections[groupId].first && groupSelections[groupId].second
+    ).length;
+  }, [groupSelections]);
 
-  const progress = (completedGroups / groups.length) * 100;
+  /**
+   * Memoized progress calculation
+   */
+  const progress = useMemo(() => {
+    return (completedGroups / groups.length) * 100;
+  }, [completedGroups, groups.length]);
 
   const handleComplete = () => {
     const advancingTeams: TeamType[] = [];
-    
+
     groups.forEach(group => {
       const selection = groupSelections[group.id];
-      if (selection.first) advancingTeams.push(selection.first);
-      if (selection.second) advancingTeams.push(selection.second);
+      if (selection?.first) advancingTeams.push(selection.first);
+      if (selection?.second) advancingTeams.push(selection.second);
     });
-    
-    if (advancingTeams.length === 32) {
+
+    if (advancingTeams.length === TOURNAMENT_CONFIG.ADVANCING_TEAMS) {
       onComplete(advancingTeams);
     }
   };
@@ -260,7 +271,7 @@ const PlayInRound: React.FC<PlayInRoundProps> = ({ groups, onComplete }) => {
                 Progress: {completedGroups}/{groups.length} Groups Complete
               </h4>
               <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
-                {32 - (completedGroups * 2)} teams remaining to advance
+                {TOURNAMENT_CONFIG.ADVANCING_TEAMS - (completedGroups * TOURNAMENT_CONFIG.TEAMS_ADVANCING_PER_GROUP)} teams remaining to advance
               </p>
             </div>
             <Badge variant="primary">

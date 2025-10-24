@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { TournamentRound } from '../types';
 import MatchupCard from './MatchupCard';
 import BracketLines from './BracketLines';
 import { Card, SectionTitle } from './styled/Common';
+import { ROUND_NAMES, ROUND_DATES, GRID_LAYOUT, ANIMATION } from '../constants/tournament';
 
 interface BracketGridProps {
   rounds: TournamentRound[];
@@ -207,26 +208,18 @@ const NavigationDot = styled.button<{
   }
 `;
 
+/**
+ * Helper function to get round dates
+ */
 const getRoundDates = (round: number): string => {
-  switch (round) {
-    case 1: return 'Jul 15 - 18';
-    case 2: return 'Jul 22 - 25';
-    case 3: return 'Jul 29 - Aug 1';
-    case 4: return 'Aug 5 - 8';
-    case 5: return 'Aug 12';
-    default: return '';
-  }
+  return ROUND_DATES[round as keyof typeof ROUND_DATES] || '';
 };
 
+/**
+ * Helper function to get round name
+ */
 const getRoundName = (round: number): string => {
-  switch (round) {
-    case 1: return 'Round of 32';
-    case 2: return 'Round of 16';
-    case 3: return 'Quarterfinals';
-    case 4: return 'Semifinals';
-    case 5: return 'Final';
-    default: return '';
-  }
+  return ROUND_NAMES[round as keyof typeof ROUND_NAMES] || '';
 };
 
 const BracketGridComponent: React.FC<BracketGridProps> = ({ 
@@ -239,14 +232,24 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
   const [frozenRounds, setFrozenRounds] = useState<Set<number>>(new Set());
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const canAdvanceCurrentRound = () => {
-    if (currentRound > rounds.length) return false;
+  /**
+   * Memoized check if current round can advance
+   */
+  const canAdvanceCurrentRound = useCallback((): boolean => {
+    if (currentRound > rounds.length) {
+      return false;
+    }
     const roundData = rounds[currentRound - 1];
-    if (!roundData) return false;
+    if (!roundData) {
+      return false;
+    }
     return roundData.matches.every(match => match.winner !== null);
-  };
+  }, [currentRound, rounds]);
 
-    const handleRoundHeaderClick = (roundIndex: number) => {
+  /**
+   * Handles clicking on round headers to focus/unfocus rounds
+   */
+  const handleRoundHeaderClick = useCallback((roundIndex: number) => {
     // If clicking on Round of 32 (index 0), reset focus to show full view
     if (roundIndex === 0) {
       setFocusedRound(null);
@@ -260,12 +263,12 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
       }
       setFrozenRounds(newFrozenRounds);
     }
-    
+
     // Focus viewport on the selected round
     if (gridRef.current) {
-      const columnWidth = gridRef.current.scrollWidth / 5;
-      let scrollPosition;
-      
+      const columnWidth = gridRef.current.scrollWidth / GRID_LAYOUT.GRID_COLUMNS;
+      let scrollPosition: number;
+
       if (roundIndex === 4) {
         // For the final round, scroll all the way to the right
         scrollPosition = gridRef.current.scrollWidth - gridRef.current.clientWidth;
@@ -273,15 +276,17 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
         // For other rounds, show a bit of previous round
         scrollPosition = columnWidth * (roundIndex - 0.2);
       }
-      
+
       gridRef.current.scrollTo({
         left: scrollPosition,
         behavior: 'smooth'
       });
     }
-  };
+  }, []);
 
-  // Auto-advance to next round when current round is complete
+  /**
+   * Auto-advance to next round when current round is complete
+   */
   useEffect(() => {
     if (currentRound <= rounds.length) {
       const currentRoundData = rounds[currentRound - 1];
@@ -290,7 +295,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
         const timer = setTimeout(() => {
           // Advance to next round
           onAdvanceRound();
-          
+
           // Maintain focus on the next round to keep condensed layout
           const nextRoundIndex = currentRound;
           if (nextRoundIndex < rounds.length) {
@@ -302,8 +307,8 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
             }
             setFrozenRounds(newFrozenRounds);
           }
-        }, 1000); // 1 second delay
-        
+        }, ANIMATION.AUTO_ADVANCE_DELAY);
+
         return () => clearTimeout(timer);
       }
     }
