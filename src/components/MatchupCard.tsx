@@ -46,9 +46,9 @@ const PlaceholderTeam = styled.div`
   box-shadow: none;
 `;
 
-const MatchupCard: React.FC<MatchupCardProps> = ({ 
-  match, 
-  onSelectWinner, 
+const MatchupCard: React.FC<MatchupCardProps> = ({
+  match,
+  onSelectWinner,
   disabled = false,
   isCurrentRound = false
 }) => {
@@ -58,14 +58,17 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
     }
   };
 
+  const team1 = match.team1;
+  const team2 = match.team2;
+
   return (
     <CardContainer disabled={disabled} isCurrentRound={isCurrentRound}>
       <TeamsContainer>
-        {match.team1 ? (
+        {team1 ? (
           <Team
-            team={match.team1}
-            onClick={() => handleTeamClick(match.team1!.id)}
-            selected={match.winner?.id === match.team1.id}
+            team={team1}
+            onClick={() => handleTeamClick(team1.id)}
+            selected={match.winner?.id === team1.id}
             size="small"
             score={match.team1Score || null}
           />
@@ -74,12 +77,12 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
             —
           </PlaceholderTeam>
         )}
-        
-        {match.team2 ? (
+
+        {team2 ? (
           <Team
-            team={match.team2}
-            onClick={() => handleTeamClick(match.team2!.id)}
-            selected={match.winner?.id === match.team2.id}
+            team={team2}
+            onClick={() => handleTeamClick(team2.id)}
+            selected={match.winner?.id === team2.id}
             size="small"
             score={match.team2Score || null}
           />
@@ -93,4 +96,16 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
   );
 };
 
-export default MatchupCard;
+/**
+ * Memoized version to prevent unnecessary re-renders
+ */
+export default React.memo(MatchupCard, (prevProps, nextProps) => {
+  return (
+    prevProps.match.id === nextProps.match.id &&
+    prevProps.match.winner?.id === nextProps.match.winner?.id &&
+    prevProps.match.team1?.id === nextProps.match.team1?.id &&
+    prevProps.match.team2?.id === nextProps.match.team2?.id &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.isCurrentRound === nextProps.isCurrentRound
+  );
+});

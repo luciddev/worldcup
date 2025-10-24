@@ -57,13 +57,3 @@ export interface TournamentState {
 }
 
 export type Region = 'CONMEBOL' | 'UEFA' | 'CONCACAF' | 'CAF' | 'AFC';
-
-export interface BracketMatch {
-  id: string;
-  team1: Team | null;
-  team2: Team | null;
-  winner: Team | null;
-  round: number;
-  position: number;
-  nextMatchId?: string;
-}
