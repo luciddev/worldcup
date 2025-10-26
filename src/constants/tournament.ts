@@ -11,6 +11,7 @@ export const TOURNAMENT_CONFIG = {
   GROUPS_COUNT: 12,
   TEAMS_PER_GROUP: 4,
   TEAMS_ADVANCING_PER_GROUP: 2,
+  THIRD_PLACE_TEAMS: 8, // Best 3rd place teams from 12 groups
 
   // Round counts
   TOTAL_ROUNDS: 5,

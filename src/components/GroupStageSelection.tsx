@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Team } from '../types';
+import { TOURNAMENT_CONFIG } from '../constants/tournament';
 
 interface GroupStageSelectionProps {
   groups: { id: string; name: string; teams: Team[] }[];
@@ -29,25 +30,6 @@ const Instructions = styled.div`
   margin-bottom: 2rem;
   text-align: center;
   color: var(--text-primary);
-`;
-
-const StageIndicator = styled.div<{ isActive: boolean; isComplete: boolean }>`
-  background: ${props => {
-    if (props.isComplete) return 'var(--success-gradient)';
-    if (props.isActive) return 'var(--primary-gradient)';
-    return 'var(--bg-card)';
-  }};
-  color: white;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  text-align: center;
-  font-weight: 600;
-  border: 2px solid ${props => {
-    if (props.isComplete) return '#10b981';
-    if (props.isActive) return 'var(--primary-color)';
-    return 'var(--border-color)';
-  }};
 `;
 
 const GroupsContainer = styled.div`
@@ -218,25 +200,32 @@ const Button = styled.button<{ disabled?: boolean }>`
   }
 `;
 
-type Stage = 'group-selection' | 'third-place-selection';
-
 const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onComplete }) => {
-  const [stage, setStage] = useState<Stage>('group-selection');
-  const [groupSelections, setGroupSelections] = useState<{ [groupId: string]: { first: Team | null; second: Team | null } }>({});
-  const [selectedThirdPlaceTeams, setSelectedThirdPlaceTeams] = useState<Team[]>([]);
+  const [groupSelections, setGroupSelections] = useState<{
+    [groupId: string]: {
+      first: Team | null;
+      second: Team | null;
+      third: Team | null;
+    }
+  }>({});
 
   // Calculate progress
-  const completedGroups = Object.values(groupSelections).filter(selection => selection.first && selection.second).length;
+  const completedGroups = Object.values(groupSelections).filter(
+    selection => selection.first && selection.second
+  ).length;
   const firstPlaceCount = Object.values(groupSelections).filter(selection => selection.first).length;
   const secondPlaceCount = Object.values(groupSelections).filter(selection => selection.second).length;
+  const thirdPlaceCount = Object.values(groupSelections).filter(selection => selection.third).length;
+  const totalSelected = firstPlaceCount + secondPlaceCount + thirdPlaceCount;
 
   const handleTeamClick = (groupId: string, team: Team) => {
     setGroupSelections(prev => {
-      const current = prev[groupId] || { first: null, second: null };
+      const current = prev[groupId] || { first: null, second: null, third: null };
 
       // Check if this team is already selected
       const isFirst = current.first?.id === team.id;
       const isSecond = current.second?.id === team.id;
+      const isThird = current.third?.id === team.id;
 
       if (isFirst) {
         // Clicking on 1st: swap with 2nd (2nd becomes 1st, clicked team becomes unranked)
@@ -244,16 +233,28 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
           ...prev,
           [groupId]: {
             first: current.second,  // 2nd becomes 1st (or null if no 2nd)
-            second: null            // Clicked team loses ranking
+            second: current.third,  // 3rd becomes 2nd (or null if no 3rd)
+            third: null             // Clicked team loses ranking
           }
         };
       } else if (isSecond) {
-        // Clicking on 2nd: remove it
+        // Clicking on 2nd: remove it, move 3rd to 2nd
         return {
           ...prev,
           [groupId]: {
             first: current.first,
-            second: null
+            second: current.third,  // 3rd moves up to 2nd
+            third: null
+          }
+        };
+      } else if (isThird) {
+        // Clicking on 3rd: remove it
+        return {
+          ...prev,
+          [groupId]: {
+            first: current.first,
+            second: current.second,
+            third: null
           }
         };
       } else {
@@ -264,7 +265,8 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
             ...prev,
             [groupId]: {
               first: team,
-              second: current.second
+              second: current.second,
+              third: current.third
             }
           };
         } else if (!current.second) {
@@ -273,16 +275,38 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
             ...prev,
             [groupId]: {
               first: current.first,
-              second: team
+              second: team,
+              third: current.third
             }
           };
-        } else {
-          // Both exist: replace 2nd with this team
+        } else if (!current.third && thirdPlaceCount < TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS) {
+          // 1st and 2nd exist, no 3rd yet, and we haven't reached max third-place teams: make this 3rd
           return {
             ...prev,
             [groupId]: {
               first: current.first,
-              second: team
+              second: current.second,
+              third: team
+            }
+          };
+        } else if (current.third) {
+          // All three exist: replace 3rd with this team
+          return {
+            ...prev,
+            [groupId]: {
+              first: current.first,
+              second: current.second,
+              third: team
+            }
+          };
+        } else {
+          // 1st and 2nd exist, but can't select 3rd (already have 8): replace 2nd
+          return {
+            ...prev,
+            [groupId]: {
+              first: current.first,
+              second: team,
+              third: current.third
             }
           };
         }
@@ -290,171 +314,100 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
     });
   };
 
-  const handleThirdPlaceClick = (group: { id: string; name: string; teams: Team[] }) => {
-    const thirdPlaceTeam = group.teams[2]; // 3rd team (index 2)
-    if (!thirdPlaceTeam) return;
-
-    const isSelected = selectedThirdPlaceTeams.some(team => team.id === thirdPlaceTeam.id);
-    
-    if (isSelected) {
-      // Remove from selection
-      setSelectedThirdPlaceTeams(prev => prev.filter(team => team.id !== thirdPlaceTeam.id));
-    } else {
-      // Add to selection (if we haven't reached 8 teams)
-      if (selectedThirdPlaceTeams.length < 8) {
-        setSelectedThirdPlaceTeams(prev => [...prev, thirdPlaceTeam]);
-      }
-    }
-  };
-
-  const handleCompleteGroupStage = () => {
-    if (completedGroups === 12) {
-      setStage('third-place-selection');
-    }
-  };
-
-  const handleCompleteThirdPlace = () => {
-    if (selectedThirdPlaceTeams.length === 8) {
+  const handleComplete = () => {
+    // Check if we have 24 teams (12 first + 12 second) and exactly 8 third-place teams
+    if (completedGroups === TOURNAMENT_CONFIG.GROUPS_COUNT && thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS) {
       // Combine all qualified teams
       const allQualifiedTeams: Team[] = [];
-      
-      // Add 1st and 2nd place teams
+
+      // Add all teams in order
       Object.values(groupSelections).forEach(selection => {
         if (selection.first) allQualifiedTeams.push(selection.first);
         if (selection.second) allQualifiedTeams.push(selection.second);
       });
-      
+
       // Add 3rd place teams
-      allQualifiedTeams.push(...selectedThirdPlaceTeams);
-      
+      Object.values(groupSelections).forEach(selection => {
+        if (selection.third) allQualifiedTeams.push(selection.third);
+      });
+
       onComplete(allQualifiedTeams);
     }
-  };
-
-  const canSelectThirdPlace = (groupId: string): boolean => {
-    const selection = groupSelections[groupId];
-    return !!(selection?.first && selection?.second); // Can only select 3rd place if 1st and 2nd are selected
   };
 
   return (
     <Container>
       <Title>🏆 2026 World Cup Group Stage</Title>
-      
+
       <Instructions>
-        <p><strong>Stage 1:</strong> Select 1st and 2nd place from each group (24 teams total)</p>
-        <p><strong>Stage 2:</strong> Select 8 best 3rd place teams from the 12 groups</p>
-        <p><strong>Total:</strong> 32 teams will advance to the Round of 32</p>
+        <p><strong>How it works:</strong> Click teams to select 1st, 2nd, and 3rd place from each group</p>
+        <p><strong>Required:</strong> {TOURNAMENT_CONFIG.GROUPS_COUNT} first-place + {TOURNAMENT_CONFIG.GROUPS_COUNT} second-place + {TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS} third-place teams = {TOURNAMENT_CONFIG.ADVANCING_TEAMS} total</p>
+        <p><strong>Note:</strong> You can only select {TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS} third-place teams total (not all {TOURNAMENT_CONFIG.GROUPS_COUNT} groups will have a 3rd place team advance)</p>
       </Instructions>
 
-      <StageIndicator 
-        isActive={stage === 'group-selection'} 
-        isComplete={stage === 'third-place-selection'}
-      >
-        {stage === 'group-selection' 
-          ? `Stage 1: Group Selection (${completedGroups}/12 groups complete)`
-          : 'Stage 1: Group Selection ✅ Complete'
-        }
-      </StageIndicator>
-
-      {stage === 'third-place-selection' && (
-        <StageIndicator 
-          isActive={stage === 'third-place-selection'} 
-          isComplete={false}
-        >
-          Stage 2: Third Place Selection ({selectedThirdPlaceTeams.length}/8 teams selected)
-        </StageIndicator>
-      )}
-
-      {stage === 'group-selection' && (
-        <SummaryContainer>
-          <SummaryTitle>Group Stage Progress</SummaryTitle>
-          <SummaryGrid>
-            <SummarySection>
-              <SummaryCount type="first">{firstPlaceCount}/12</SummaryCount>
-              <div>1st Place Teams</div>
-            </SummarySection>
-            <SummarySection>
-              <SummaryCount type="second">{secondPlaceCount}/12</SummaryCount>
-              <div>2nd Place Teams</div>
-            </SummarySection>
-            <SummarySection>
-              <SummaryCount type="third">0/8</SummaryCount>
-              <div>3rd Place Teams</div>
-            </SummarySection>
-          </SummaryGrid>
-        </SummaryContainer>
-      )}
-
-      {stage === 'third-place-selection' && selectedThirdPlaceTeams.length > 0 && (
-        <SummaryContainer>
-          <SummaryTitle>Selected Third-Place Teams</SummaryTitle>
-          <SummaryGrid>
-            {selectedThirdPlaceTeams.map((team, index) => (
-              <TeamItem key={team.id} isSelected={true} position={3} isThirdPlace={true} canSelectThird={false} isClickable={false}>
-                <TeamFlag>{team.flag}</TeamFlag>
-                <TeamInfo>
-                  <TeamName>{team.name}</TeamName>
-                  <TeamDetails>Seed {team.seed} • {team.region}</TeamDetails>
-                </TeamInfo>
-                <PositionBadge position={index + 1}>#{index + 1}</PositionBadge>
-              </TeamItem>
-            ))}
-          </SummaryGrid>
-        </SummaryContainer>
-      )}
+      <SummaryContainer>
+        <SummaryTitle>Selection Progress ({totalSelected}/{TOURNAMENT_CONFIG.ADVANCING_TEAMS} teams)</SummaryTitle>
+        <SummaryGrid>
+          <SummarySection>
+            <SummaryCount type="first">{firstPlaceCount}/{TOURNAMENT_CONFIG.GROUPS_COUNT}</SummaryCount>
+            <div>1st Place Teams</div>
+          </SummarySection>
+          <SummarySection>
+            <SummaryCount type="second">{secondPlaceCount}/{TOURNAMENT_CONFIG.GROUPS_COUNT}</SummaryCount>
+            <div>2nd Place Teams</div>
+          </SummarySection>
+          <SummarySection>
+            <SummaryCount type="third">{thirdPlaceCount}/{TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS}</SummaryCount>
+            <div>3rd Place Teams {thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS && '✓'}</div>
+          </SummarySection>
+        </SummaryGrid>
+      </SummaryContainer>
 
       <GroupsContainer>
         {groups.map((group) => {
           const selection = groupSelections[group.id];
           const isComplete = selection?.first && selection?.second;
-          const canSelectThird = canSelectThirdPlace(group.id);
-          const thirdPlaceTeam = group.teams[2];
-          const isThirdSelected = selectedThirdPlaceTeams.some(team => team.id === thirdPlaceTeam?.id);
-          
+          const hasThirdPlace = !!selection?.third;
+
           return (
-            <GroupCard key={group.id} isComplete={!!isComplete}>
-              <GroupHeader>{group.name}</GroupHeader>
+            <GroupCard key={group.id} isComplete={!!isComplete && (hasThirdPlace || thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS)}>
+              <GroupHeader>
+                {group.name}
+                {hasThirdPlace && ' • 3rd selected'}
+              </GroupHeader>
               <TeamList>
-                {group.teams.map((team, index) => {
+                {group.teams.map((team) => {
                   const isFirst = selection?.first?.id === team.id;
                   const isSecond = selection?.second?.id === team.id;
-                  const isSelected = isFirst || isSecond;
-                  const isThirdInArray = index === 2; // 3rd team in array (for stage 2)
+                  const isThird = selection?.third?.id === team.id;
+                  const isSelected = isFirst || isSecond || isThird;
 
-                  // Determine if this team is clickable
-                  const isClickable = stage === 'group-selection' || (stage === 'third-place-selection' && isThirdInArray && canSelectThird);
+                  // All teams are clickable
+                  const isClickable = true;
 
                   return (
                     <TeamItem
                       key={team.id}
                       isSelected={isSelected}
-                      position={isFirst ? 1 : isSecond ? 2 : index + 1}
-                      isThirdPlace={isThirdInArray}
-                      canSelectThird={isThirdInArray && canSelectThird && stage === 'third-place-selection'}
+                      position={isFirst ? 1 : isSecond ? 2 : isThird ? 3 : 0}
+                      isThirdPlace={false}
+                      canSelectThird={false}
                       isClickable={isClickable}
-                      onClick={() => {
-                        if (stage === 'group-selection') {
-                          handleTeamClick(group.id, team);
-                        } else if (stage === 'third-place-selection' && isThirdInArray && canSelectThird) {
-                          handleThirdPlaceClick(group);
-                        }
-                      }}
+                      onClick={() => handleTeamClick(group.id, team)}
                     >
                       <TeamFlag>{team.flag}</TeamFlag>
                       <TeamInfo>
                         <TeamName>{team.name}</TeamName>
                         <TeamDetails>Seed {team.seed} • {team.region}</TeamDetails>
                       </TeamInfo>
-                      {/* Only show badge if team is selected (1st or 2nd) or in stage 2 for 3rd place */}
-                      {(isFirst || isSecond) && (
-                        <PositionBadge position={isFirst ? 1 : 2}>
-                          {isFirst ? '1st ✓' : '2nd ✓'}
-                        </PositionBadge>
+                      {isFirst && (
+                        <PositionBadge position={1}>1st ✓</PositionBadge>
                       )}
-                      {stage === 'third-place-selection' && isThirdInArray && canSelectThird && (
-                        <PositionBadge position={3}>
-                          {isThirdSelected ? '3rd ✓' : '3rd'}
-                        </PositionBadge>
+                      {isSecond && (
+                        <PositionBadge position={2}>2nd ✓</PositionBadge>
+                      )}
+                      {isThird && (
+                        <PositionBadge position={3}>3rd ✓</PositionBadge>
                       )}
                     </TeamItem>
                   );
@@ -465,27 +418,15 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
         })}
       </GroupsContainer>
 
-      {stage === 'group-selection' ? (
-        <Button 
-          onClick={handleCompleteGroupStage}
-          disabled={completedGroups !== 12}
-        >
-          {completedGroups < 12 
-            ? `Complete ${12 - completedGroups} more groups` 
-            : 'Continue to Third Place Selection'
-          }
-        </Button>
-      ) : (
-        <Button 
-          onClick={handleCompleteThirdPlace}
-          disabled={selectedThirdPlaceTeams.length !== 8}
-        >
-          {selectedThirdPlaceTeams.length < 8 
-            ? `Select ${8 - selectedThirdPlaceTeams.length} more third-place teams` 
-            : 'Complete Group Stage (32 teams qualified)'
-          }
-        </Button>
-      )}
+      <Button
+        onClick={handleComplete}
+        disabled={!(completedGroups === TOURNAMENT_CONFIG.GROUPS_COUNT && thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS)}
+      >
+        {totalSelected < TOURNAMENT_CONFIG.ADVANCING_TEAMS
+          ? `Select ${TOURNAMENT_CONFIG.ADVANCING_TEAMS - totalSelected} more teams (need ${TOURNAMENT_CONFIG.GROUPS_COUNT - firstPlaceCount} 1st, ${TOURNAMENT_CONFIG.GROUPS_COUNT - secondPlaceCount} 2nd, ${TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS - thirdPlaceCount} 3rd)`
+          : `Complete Group Stage (${TOURNAMENT_CONFIG.ADVANCING_TEAMS} teams qualified) ✓`
+        }
+      </Button>
     </Container>
   );
 };
