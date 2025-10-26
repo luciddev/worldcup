@@ -174,45 +174,28 @@ const MatchWrapper = styled.div<{
   justify-content: center;
   justify-self: center;
 
-  /* Bracket connecting lines using CSS borders */
-  &::after {
-    content: '';
-    position: absolute;
-    right: -1.5rem;
-    top: 50%;
-    width: 1.5rem;
-    height: 2px;
-    background: var(--border-color);
-    display: ${props => props.roundIndex < 4 ? 'block' : 'none'};
-    z-index: 1;
-  }
+  /* Alternating background paths to show tournament progression */
+  background: ${props => {
+    // Calculate path number based on position
+    // Each match traces back to pairs in previous rounds
+    // Round 1 (16 matches): positions 0-15
+    // Round 2 (8 matches): positions 0-7 (each from pair of R1)
+    // Round 3 (4 matches): positions 0-3 (each from pair of R2)
+    // etc.
 
-  /* Vertical connecting line between pairs */
-  &::before {
-    content: '';
-    position: absolute;
-    right: -1.5rem;
-    ${props => {
-      const isTopOfPair = props.position % 2 === 0;
-      if (isTopOfPair) {
-        return `
-          top: 50%;
-          height: calc(100% + 2rem);
-          transform: translateY(0);
-        `;
-      } else {
-        return `
-          bottom: 50%;
-          height: calc(100% + 2rem);
-          transform: translateY(0);
-        `;
-      }
-    }}
-    width: 2px;
-    background: var(--border-color);
-    display: ${props => props.roundIndex < 4 && props.focusedRound === null ? 'block' : 'none'};
-    z-index: 0;
-  }
+    // Calculate which "path" this match belongs to by tracing back to Round 1
+    const pathIndex = Math.floor(props.position / Math.pow(2, Math.max(0, 4 - props.roundIndex)));
+    const colorIndex = pathIndex % 8; // 8 alternating colors
+
+    // Different opacity levels for visual distinction
+    const opacities = [0.03, 0.07, 0.03, 0.07, 0.03, 0.07, 0.03, 0.07];
+    const opacity = opacities[colorIndex];
+
+    return `rgba(59, 130, 246, ${opacity})`; // Blue tint
+  }};
+
+  padding: 0.5rem;
+  border-radius: 8px;
 `;
 
 const NavigationDots = styled.div`
@@ -403,7 +386,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                 <MatchupCard
                   match={match}
                   onSelectWinner={(teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)}
-                  disabled={false}
+                  disabled={round.round !== currentRound}
                   isCurrentRound={round.round === currentRound}
                 />
               </MatchWrapper>
