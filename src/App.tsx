@@ -77,11 +77,24 @@ const AppContent: React.FC = () => {
   const handleAutoPickPlayIn = () => {
     const autoSelections = autoPickPlayInTeams(tournamentState.playInGroups);
     const advancingTeams: Team[] = [];
-    
+
+    // Add first and second place teams from each group
     Object.values(autoSelections).forEach(selection => {
       advancingTeams.push(selection.first, selection.second);
     });
-    
+
+    // Add third place teams (8 random groups)
+    const groupsWithThird = Object.keys(autoSelections)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 8);
+
+    groupsWithThird.forEach(groupId => {
+      const group = tournamentState.playInGroups.find(g => g.id === groupId);
+      if (group && group.teams[2]) {
+        advancingTeams.push(group.teams[2]); // Third team in the group
+      }
+    });
+
     handlePlayInComplete(advancingTeams);
   };
 
