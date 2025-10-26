@@ -175,34 +175,49 @@ const MatchWrapper = styled.div<{
   justify-self: center;
   padding: 0.5rem;
 
-  /* ESPN-style bracket connecting lines */
-  /* Horizontal line extending to the right (except for final round) */
-  &::after {
-    content: '';
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    width: ${props => props.roundIndex < 4 ? '1rem' : '0'};
-    height: 2px;
-    background: ${props => props.focusedRound !== null ? 'rgba(100, 116, 139, 0.4)' : 'rgba(100, 116, 139, 0.5)'};
-    z-index: 1;
-  }
-
-  /* Vertical connector line between pairs of matches */
-  /* Only show on odd-positioned matches (0, 2, 4, etc.) */
-  ${props => props.position % 2 === 0 && props.roundIndex < 4 ? `
-    &::before {
+  /* Bracket connector lines - ESPN style */
+  /* Horizontal line from match to gap (except final round) */
+  ${props => props.roundIndex < 4 && props.focusedRound === null ? `
+    &::after {
       content: '';
       position: absolute;
-      left: calc(100% + 1rem);
+      left: 100%;
       top: 50%;
-      width: 2px;
-      height: calc(${Math.pow(2, props.roundIndex)} * (60px + 2rem));
-      background: ${props.focusedRound !== null ? 'rgba(100, 116, 139, 0.4)' : 'rgba(100, 116, 139, 0.5)'};
-      z-index: 1;
+      width: 1rem;
+      height: 3px;
+      background: rgba(100, 116, 139, 0.6);
       transform: translateY(-50%);
+      z-index: 2;
     }
   ` : ''}
+
+  /* Vertical line connecting pairs (only for even-positioned matches) */
+  ${props => {
+    if (props.position % 2 !== 0 || props.roundIndex >= 4 || props.focusedRound !== null) {
+      return '';
+    }
+
+    // Calculate height based on round to connect pairs
+    // For round 0 (R32): connect every 2 matches (2 grid rows apart)
+    // For round 1 (R16): connect every 2 matches (4 grid rows apart)
+    const verticalSpan = Math.pow(2, props.roundIndex + 1);
+    const rowHeight = 60; // minmax 60px from grid
+    const gap = 32; // 2rem in pixels
+    const totalHeight = (verticalSpan * rowHeight) + ((verticalSpan - 1) * gap);
+
+    return `
+      &::before {
+        content: '';
+        position: absolute;
+        left: calc(100% + 1rem);
+        top: 50%;
+        width: 3px;
+        height: ${totalHeight}px;
+        background: rgba(100, 116, 139, 0.6);
+        z-index: 2;
+      }
+    `;
+  }}
 `;
 
 const NavigationDots = styled.div`
