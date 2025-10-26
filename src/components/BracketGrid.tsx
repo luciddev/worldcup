@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { TournamentRound } from '../types';
 import MatchupCard from './MatchupCard';
-import BracketLines from './BracketLines';
 import { Card, SectionTitle } from './styled/Common';
 import { ROUND_NAMES, ROUND_DATES, GRID_LAYOUT, ANIMATION } from '../constants/tournament';
 
@@ -131,7 +130,7 @@ const RoundDate = styled.div`
 
 
 
-const MatchWrapper = styled.div<{ 
+const MatchWrapper = styled.div<{
   isCurrentRound: boolean;
   position: number;
   totalMatches: number;
@@ -148,7 +147,7 @@ const MatchWrapper = styled.div<{
     // Always maintain proper grid positioning regardless of focus
     const rowSpan = Math.pow(2, props.roundIndex);
     const startRow = (props.position * rowSpan) + 2; // +2 to account for header row
-    
+
     // When focused, recalculate positioning as if focused round is the first round
     if (props.focusedRound !== null) {
       if (props.roundIndex === props.focusedRound) {
@@ -167,7 +166,7 @@ const MatchWrapper = styled.div<{
         return `${adjustedStartRow} / span ${adjustedRowSpan}`;
       }
     }
-    
+
     return `${startRow} / span ${rowSpan}`;
   }};
   display: flex;
@@ -175,6 +174,45 @@ const MatchWrapper = styled.div<{
   justify-content: center;
   justify-self: center;
 
+  /* Bracket connecting lines using CSS borders */
+  &::after {
+    content: '';
+    position: absolute;
+    right: -1.5rem;
+    top: 50%;
+    width: 1.5rem;
+    height: 2px;
+    background: var(--border-color);
+    display: ${props => props.roundIndex < 4 ? 'block' : 'none'};
+    z-index: 1;
+  }
+
+  /* Vertical connecting line between pairs */
+  &::before {
+    content: '';
+    position: absolute;
+    right: -1.5rem;
+    ${props => {
+      const isTopOfPair = props.position % 2 === 0;
+      if (isTopOfPair) {
+        return `
+          top: 50%;
+          height: calc(100% + 2rem);
+          transform: translateY(0);
+        `;
+      } else {
+        return `
+          bottom: 50%;
+          height: calc(100% + 2rem);
+          transform: translateY(0);
+        `;
+      }
+    }}
+    width: 2px;
+    background: var(--border-color);
+    display: ${props => props.roundIndex < 4 && props.focusedRound === null ? 'block' : 'none'};
+    z-index: 0;
+  }
 `;
 
 const NavigationDots = styled.div`
@@ -368,14 +406,6 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                   disabled={false}
                   isCurrentRound={round.round === currentRound}
                 />
-                {roundIndex < rounds.length - 1 && (
-                  <BracketLines
-                    roundIndex={roundIndex}
-                    matchIndex={matchIndex}
-                    totalMatches={round.matches.length}
-                    isCurrentRound={round.round === currentRound}
-                  />
-                )}
               </MatchWrapper>
             ))}
           </RoundColumn>
