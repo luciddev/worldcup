@@ -173,29 +173,51 @@ const MatchWrapper = styled.div<{
   align-items: center;
   justify-content: center;
   justify-self: center;
-
-  /* Alternating background paths to show tournament progression */
-  background: ${props => {
-    // Calculate path number based on position
-    // Each match traces back to pairs in previous rounds
-    // Round 1 (16 matches): positions 0-15
-    // Round 2 (8 matches): positions 0-7 (each from pair of R1)
-    // Round 3 (4 matches): positions 0-3 (each from pair of R2)
-    // etc.
-
-    // Calculate which "path" this match belongs to by tracing back to Round 1
-    const pathIndex = Math.floor(props.position / Math.pow(2, Math.max(0, 4 - props.roundIndex)));
-    const colorIndex = pathIndex % 8; // 8 alternating colors
-
-    // Different opacity levels for visual distinction
-    const opacities = [0.03, 0.07, 0.03, 0.07, 0.03, 0.07, 0.03, 0.07];
-    const opacity = opacities[colorIndex];
-
-    return `rgba(59, 130, 246, ${opacity})`; // Blue tint
-  }};
-
   padding: 0.5rem;
-  border-radius: 8px;
+
+  /* Bracket connector lines - ESPN style */
+  /* Horizontal line from match to gap (except final round) */
+  ${props => props.roundIndex < 4 && props.focusedRound === null ? `
+    &::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      width: 1rem;
+      height: 3px;
+      background: rgba(100, 116, 139, 0.6);
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+  ` : ''}
+
+  /* Vertical line connecting pairs (only for even-positioned matches) */
+  ${props => {
+    if (props.position % 2 !== 0 || props.roundIndex >= 4 || props.focusedRound !== null) {
+      return '';
+    }
+
+    // Calculate height based on round to connect pairs
+    // For round 0 (R32): connect every 2 matches (2 grid rows apart)
+    // For round 1 (R16): connect every 2 matches (4 grid rows apart)
+    const verticalSpan = Math.pow(2, props.roundIndex + 1);
+    const rowHeight = 60; // minmax 60px from grid
+    const gap = 32; // 2rem in pixels
+    const totalHeight = (verticalSpan * rowHeight) + ((verticalSpan - 1) * gap);
+
+    return `
+      &::before {
+        content: '';
+        position: absolute;
+        left: calc(100% + 1rem);
+        top: 50%;
+        width: 3px;
+        height: ${totalHeight}px;
+        background: rgba(100, 116, 139, 0.6);
+        z-index: 2;
+      }
+    `;
+  }}
 `;
 
 const NavigationDots = styled.div`

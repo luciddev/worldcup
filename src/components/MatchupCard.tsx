@@ -67,7 +67,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
         {team1 ? (
           <Team
             team={team1}
-            onClick={() => handleTeamClick(team1.id)}
+            onClick={!disabled ? () => handleTeamClick(team1.id) : undefined}
             selected={match.winner?.id === team1.id}
             size="small"
             score={match.team1Score || null}
@@ -81,7 +81,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
         {team2 ? (
           <Team
             team={team2}
-            onClick={() => handleTeamClick(team2.id)}
+            onClick={!disabled ? () => handleTeamClick(team2.id) : undefined}
             selected={match.winner?.id === team2.id}
             size="small"
             score={match.team2Score || null}
