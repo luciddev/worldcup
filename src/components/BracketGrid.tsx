@@ -175,7 +175,7 @@ const MatchWrapper = styled.div<{
   padding: 0.5rem;
 
   /* Bracket connector lines - ESPN style */
-  /* Horizontal line from match to gap (except final round) */
+  /* Horizontal line going OUT to the right (except final round) */
   ${props => props.roundIndex < 4 && props.focusedRound === null ? `
     &::after {
       content: '';
@@ -187,6 +187,7 @@ const MatchWrapper = styled.div<{
       background: rgba(255, 255, 255, 0.3);
       border: 1px solid rgba(100, 116, 139, 0.8);
       z-index: 10;
+      transform: translateY(-50%);
     }
   ` : ''}
 
@@ -196,11 +197,13 @@ const MatchWrapper = styled.div<{
       return '';
     }
 
-    // Calculate height based on round to connect pairs
-    const verticalSpan = Math.pow(2, props.roundIndex + 1);
+    // Calculate height to connect this match to the one below it
+    // Each match spans 'rowSpan' rows, so the next match is rowSpan rows away
+    const rowSpan = Math.pow(2, props.roundIndex);
     const rowHeight = 60;
     const gap = 32;
-    const totalHeight = (verticalSpan * rowHeight) + ((verticalSpan - 1) * gap);
+    // Height from center of this match to center of next match
+    const totalHeight = (rowSpan * rowHeight) + gap;
 
     return `
       &::before {
@@ -409,6 +412,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                   onSelectWinner={(teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)}
                   disabled={round.round !== currentRound}
                   isCurrentRound={round.round === currentRound}
+                  roundIndex={roundIndex}
                 />
               </MatchWrapper>
             ))}
