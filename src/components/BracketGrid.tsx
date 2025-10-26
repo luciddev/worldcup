@@ -173,29 +173,36 @@ const MatchWrapper = styled.div<{
   align-items: center;
   justify-content: center;
   justify-self: center;
-
-  /* Alternating background paths to show tournament progression */
-  background: ${props => {
-    // Calculate path number based on position
-    // Each match traces back to pairs in previous rounds
-    // Round 1 (16 matches): positions 0-15
-    // Round 2 (8 matches): positions 0-7 (each from pair of R1)
-    // Round 3 (4 matches): positions 0-3 (each from pair of R2)
-    // etc.
-
-    // Calculate which "path" this match belongs to by tracing back to Round 1
-    const pathIndex = Math.floor(props.position / Math.pow(2, Math.max(0, 4 - props.roundIndex)));
-    const colorIndex = pathIndex % 8; // 8 alternating colors
-
-    // Different opacity levels for visual distinction
-    const opacities = [0.03, 0.07, 0.03, 0.07, 0.03, 0.07, 0.03, 0.07];
-    const opacity = opacities[colorIndex];
-
-    return `rgba(59, 130, 246, ${opacity})`; // Blue tint
-  }};
-
   padding: 0.5rem;
-  border-radius: 8px;
+
+  /* ESPN-style bracket connecting lines */
+  /* Horizontal line extending to the right (except for final round) */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: ${props => props.roundIndex < 4 ? '1rem' : '0'};
+    height: 2px;
+    background: ${props => props.focusedRound !== null ? 'rgba(100, 116, 139, 0.4)' : 'rgba(100, 116, 139, 0.5)'};
+    z-index: 1;
+  }
+
+  /* Vertical connector line between pairs of matches */
+  /* Only show on odd-positioned matches (0, 2, 4, etc.) */
+  ${props => props.position % 2 === 0 && props.roundIndex < 4 ? `
+    &::before {
+      content: '';
+      position: absolute;
+      left: calc(100% + 1rem);
+      top: 50%;
+      width: 2px;
+      height: calc(${Math.pow(2, props.roundIndex)} * (60px + 2rem));
+      background: ${props.focusedRound !== null ? 'rgba(100, 116, 139, 0.4)' : 'rgba(100, 116, 139, 0.5)'};
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+  ` : ''}
 `;
 
 const NavigationDots = styled.div`
