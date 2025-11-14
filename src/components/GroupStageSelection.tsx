@@ -144,6 +144,10 @@ const SummaryContainer = styled.div`
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 `;
 
 const SummaryTitle = styled.h3`
