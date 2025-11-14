@@ -139,37 +139,44 @@ const PositionBadge = styled.div<{ position: number }>`
 `;
 
 const SummaryContainer = styled.div`
-  background: var(--bg-card);
-  border: 2px solid var(--primary-color);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.95) 0%, rgba(29, 78, 216, 1) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
   margin-bottom: 2rem;
   position: sticky;
-  top: 1rem;
+  top: 0.5rem;
   z-index: 100;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
 `;
 
 const SummaryTitle = styled.h3`
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 600;
+  display: none;
 `;
 
 const SummaryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
 `;
 
 const SummarySection = styled.div`
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const SummaryCount = styled.div<{ type: 'first' | 'second' | 'third' }>`
   background: ${props => {
+    switch (props.type) {
+      case 'first': return 'rgba(16, 185, 129, 0.3)';
+      case 'second': return 'rgba(59, 130, 246, 0.3)';
+      case 'third': return 'rgba(245, 158, 11, 0.3)';
+    }
+  }};
+  border: 2px solid ${props => {
     switch (props.type) {
       case 'first': return '#10b981';
       case 'second': return '#3b82f6';
@@ -177,11 +184,18 @@ const SummaryCount = styled.div<{ type: 'first' | 'second' | 'third' }>`
     }
   }};
   color: white;
-  padding: 0.5rem;
-  border-radius: 8px;
-  font-size: 1.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  min-width: 3rem;
+  text-align: center;
+`;
+
+const SummaryLabel = styled.span`
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
 `;
 
 const Button = styled.button<{ disabled?: boolean }>`
@@ -352,17 +366,18 @@ const GroupStageSelection: React.FC<GroupStageSelectionProps> = ({ groups, onCom
       <SummaryContainer>
         <SummaryTitle>Selection Progress ({totalSelected}/{TOURNAMENT_CONFIG.ADVANCING_TEAMS} teams)</SummaryTitle>
         <SummaryGrid>
+          <SummaryLabel>📊 Selection Progress: {totalSelected}/{TOURNAMENT_CONFIG.ADVANCING_TEAMS}</SummaryLabel>
           <SummarySection>
+            <SummaryLabel>1st:</SummaryLabel>
             <SummaryCount type="first">{firstPlaceCount}/{TOURNAMENT_CONFIG.GROUPS_COUNT}</SummaryCount>
-            <div>1st Place Teams</div>
           </SummarySection>
           <SummarySection>
+            <SummaryLabel>2nd:</SummaryLabel>
             <SummaryCount type="second">{secondPlaceCount}/{TOURNAMENT_CONFIG.GROUPS_COUNT}</SummaryCount>
-            <div>2nd Place Teams</div>
           </SummarySection>
           <SummarySection>
-            <SummaryCount type="third">{thirdPlaceCount}/{TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS}</SummaryCount>
-            <div>3rd Place Teams {thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS && '✓'}</div>
+            <SummaryLabel>3rd:</SummaryLabel>
+            <SummaryCount type="third">{thirdPlaceCount}/{TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS}{thirdPlaceCount === TOURNAMENT_CONFIG.THIRD_PLACE_TEAMS && ' ✓'}</SummaryCount>
           </SummarySection>
         </SummaryGrid>
       </SummaryContainer>
