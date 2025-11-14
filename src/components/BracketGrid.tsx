@@ -171,23 +171,23 @@ const MatchWrapper = styled.div<{
   }};
   display: flex;
   align-items: center;
-  justify-content: center;
-  justify-self: center;
+  justify-content: flex-start;
   padding: 0.5rem;
 
   /* Bracket connector lines - ESPN style */
-  /* Horizontal line from match to gap (except final round) */
+  /* Horizontal line going OUT to the right (except final round) */
   ${props => props.roundIndex < 4 && props.focusedRound === null ? `
     &::after {
       content: '';
       position: absolute;
-      left: 100%;
+      right: -1rem;
       top: 50%;
       width: 1rem;
       height: 3px;
-      background: rgba(100, 116, 139, 0.6);
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(100, 116, 139, 0.8);
+      z-index: 10;
       transform: translateY(-50%);
-      z-index: 2;
     }
   ` : ''}
 
@@ -197,24 +197,26 @@ const MatchWrapper = styled.div<{
       return '';
     }
 
-    // Calculate height based on round to connect pairs
-    // For round 0 (R32): connect every 2 matches (2 grid rows apart)
-    // For round 1 (R16): connect every 2 matches (4 grid rows apart)
-    const verticalSpan = Math.pow(2, props.roundIndex + 1);
-    const rowHeight = 60; // minmax 60px from grid
-    const gap = 32; // 2rem in pixels
-    const totalHeight = (verticalSpan * rowHeight) + ((verticalSpan - 1) * gap);
+    // Calculate height to connect this match to the one below it
+    // Each match spans 'rowSpan' rows, so the next match is rowSpan rows away
+    const rowSpan = Math.pow(2, props.roundIndex);
+    const rowHeight = 60;
+    const gap = 32;
+    // Height from center of this match to center of next match
+    const totalHeight = (rowSpan * rowHeight) + gap;
 
     return `
       &::before {
         content: '';
         position: absolute;
-        left: calc(100% + 1rem);
+        right: -1rem;
         top: 50%;
         width: 3px;
         height: ${totalHeight}px;
-        background: rgba(100, 116, 139, 0.6);
-        z-index: 2;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 1px solid rgba(100, 116, 139, 0.8);
+        border-right: 1px solid rgba(100, 116, 139, 0.8);
+        z-index: 10;
       }
     `;
   }}
@@ -410,6 +412,7 @@ const BracketGridComponent: React.FC<BracketGridProps> = ({
                   onSelectWinner={(teamId: number) => onSelectWinner(roundIndex, matchIndex, teamId)}
                   disabled={round.round !== currentRound}
                   isCurrentRound={round.round === currentRound}
+                  roundIndex={roundIndex}
                 />
               </MatchWrapper>
             ))}

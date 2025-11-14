@@ -8,9 +8,14 @@ interface MatchupCardProps {
   onSelectWinner?: (teamId: number) => void;
   disabled?: boolean;
   isCurrentRound: boolean;
+  roundIndex?: number;
 }
 
-const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }>`
+const CardContainer = styled.div<{
+  disabled?: boolean;
+  isCurrentRound: boolean;
+  roundIndex?: number;
+}>`
   background: transparent;
   border: none;
   border-radius: 0;
@@ -20,6 +25,23 @@ const CardContainer = styled.div<{ disabled?: boolean; isCurrentRound: boolean }
   transition: all 0.2s ease;
   opacity: ${props => props.disabled ? 0.6 : 1};
   box-shadow: none;
+  position: relative;
+
+  /* Horizontal line coming FROM the left (from previous round) */
+  ${props => props.roundIndex && props.roundIndex > 0 ? `
+    &::before {
+      content: '';
+      position: absolute;
+      left: -1rem;
+      top: 50%;
+      width: 1rem;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(100, 116, 139, 0.8);
+      z-index: 10;
+      transform: translateY(-50%);
+    }
+  ` : ''}
 `;
 
 
@@ -50,7 +72,8 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
   match,
   onSelectWinner,
   disabled = false,
-  isCurrentRound = false
+  isCurrentRound = false,
+  roundIndex
 }) => {
   const handleTeamClick = (teamId: number) => {
     if (!disabled && onSelectWinner) {
@@ -62,7 +85,7 @@ const MatchupCard: React.FC<MatchupCardProps> = ({
   const team2 = match.team2;
 
   return (
-    <CardContainer disabled={disabled} isCurrentRound={isCurrentRound}>
+    <CardContainer disabled={disabled} isCurrentRound={isCurrentRound} roundIndex={roundIndex}>
       <TeamsContainer>
         {team1 ? (
           <Team
